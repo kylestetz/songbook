@@ -16,7 +16,7 @@ Widgets can sit right inside a sentence. The note :note[A4] is concert pitch. A 
 
 ## Scales and modes
 
-Dorian is a minor mode with a bright sixth. Click the keys, the degrees, or the chords below.
+Dorian is a minor mode with a bright sixth. Click the keys or the chords below.
 
 ::scale{root=D mode=dorian octave=4 chords=sevenths}
 

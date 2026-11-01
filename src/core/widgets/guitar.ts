@@ -2,11 +2,9 @@ import { Note } from '@tonaljs/tonal';
 import {
   describeVoicing,
   displayNote,
-  formatFrets,
   fretsToNotes,
   getTuning,
   guitarVoicing,
-  parseChord,
   parseFrets,
   prettyAccidentals,
   TUNINGS,
@@ -66,11 +64,10 @@ export const guitarWidget: WidgetDefinition = {
     }
     if (!voicing && values.chord) voicing = guitarVoicing(values.chord, tuning);
     const title = chordSymbolEl(values.chord || '');
-    const chord = parseChord(values.chord || '');
     const { el: frame, body, actions } = card({
       kind: 'guitar',
       title,
-      subtitle: tuning.id !== 'standard' ? tuning.label : chord?.name,
+      subtitle: tuning.id !== 'standard' ? tuning.label : undefined,
       caption: values.caption,
     });
     if (!voicing) {
@@ -92,7 +89,6 @@ export const guitarWidget: WidgetDefinition = {
       strum();
     });
     body.append(h('div', { class: 'mn-guitar-wrap' }, diagram));
-    body.append(h('div', { class: 'mn-guitar-frets' }, formatFrets(voicing.frets)));
 
     const btn = playButton(
       () => {
