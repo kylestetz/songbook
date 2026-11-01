@@ -189,10 +189,18 @@ export function InstrumentPanel({
   const ordered = (ps: Pick[]) => (b.mode === 'sequence' || b.mode === 'interval' ? ps : [...ps].sort((x, y) => x.midi - y.midi));
   const midis = ordered(picks).map((p) => p.midi);
   const chordNames = b.mode === 'chord' || b.mode === 'chords' || b.mode === 'notes' || b.mode === 'sequence' ? detectChords(midis) : [];
-  const storedSymbol = b.mode === 'chord' ? value : b.mode === 'chords' && slotIndex !== 'new' ? tokens[slotIndex].text : null;
+  // A notes field can also hold a chord symbol, e.g. after picking a name for
+  // what was played. Names like "C6" read as a single note there, so skip them.
+  const readsAsChord = (s: string) => /^\S+$/.test(s) && !!parseChord(s) && resolveNotes(s).length > 1;
+  const notesChord = b.mode === 'notes' && readsAsChord(value.trim()) ? value.trim() : null;
+  const storedSymbol =
+    b.mode === 'chord' ? value : b.mode === 'chords' && slotIndex !== 'new' ? tokens[slotIndex].text : notesChord;
   // Show the stored name while it still describes what's on the instrument.
   const shownSymbol =
     storedSymbol && parseChord(storedSymbol) && (chordNames.includes(storedSymbol) || !edited) ? storedSymbol : chordNames[0] ?? null;
+  // In a notes field, only name a chord once one has been chosen.
+  const readoutSymbol = b.mode === 'notes' ? (notesChord && chordNames.includes(notesChord) ? notesChord : null) : shownSymbol;
+  const choices = b.mode === 'notes' ? chordNames.filter(readsAsChord) : chordNames;
   const spelled = spellNotes(midis, shownSymbol ?? undefined);
   const spell = (m: number) => spelled[midis.indexOf(m)] ?? friendlyNote(m);
 
@@ -289,6 +297,15 @@ export function InstrumentPanel({
     apply(limit([...others, { midi, string }]));
   };
 
+  const chooseName = (symbol: string) => {
+    if (b.mode === 'chord' || b.mode === 'notes') commit(chordValues(picks, symbol));
+    else if (b.mode === 'chords' && slotIndex === 'new') addChord(symbol);
+    else if (b.mode === 'chords' && slotIndex !== 'new') {
+      const t = tokens[slotIndex];
+      commit({ ...values, [field.key]: value.slice(0, t.start) + symbol + value.slice(t.end) });
+    }
+  };
+
   const addChord = (symbol = chordNames[0]) => {
     if (!symbol) return;
     const trimmed = value.replace(/\s+$/, '');
@@ -362,11 +379,12 @@ export function InstrumentPanel({
           <Readout
             mode={b.mode}
             midis={midis}
-            symbol={shownSymbol}
+            symbol={readoutSymbol}
             spell={spell}
-            chordNames={chordNames}
+            chordNames={choices}
             note={derivedNote}
             isNewSlot={slotIndex === 'new'}
+            onChoose={chooseName}
             onAdd={addChord}
           />
         </>
@@ -383,6 +401,7 @@ function Readout({
   chordNames,
   note,
   isNewSlot,
+  onChoose,
   onAdd,
 }: {
   mode: InstrumentBinding['mode'];
@@ -393,12 +412,24 @@ function Readout({
   chordNames: string[];
   note?: string;
   isNewSlot: boolean;
+  /** Pick another name for the same notes */
+  onChoose(symbol: string): void;
   onAdd(): void;
 }) {
   const names = midis.map((m) => displayNote(spell(m)));
   const pcs = midis.map((m) => displayNote(spell(m), { octave: false }));
   const empty = !midis.length;
   const hint = (text: string) => <span className="instrument-hint">{text}</span>;
+  /** Chord names that match what's played, as quiet one-click choices. */
+  const alts = (except: string | null) =>
+    chordNames
+      .filter((n) => n !== except)
+      .slice(0, 3)
+      .map((n) => (
+        <button key={n} type="button" className="chip-btn instrument-alt" title="Use this chord name" onClick={() => onChoose(n)}>
+          {prettyAccidentals(n)}
+        </button>
+      ));
   let body: React.ReactNode;
 
   if (note && empty) body = hint(note);
@@ -414,11 +445,21 @@ function Readout({
         {info ? hint(info.long) : hint('Now pick the second note.')}
       </>
     );
+  } else if (mode === 'notes' && symbol && !empty) {
+    body = (
+      <>
+        <strong className="instrument-name">{prettyAccidentals(symbol)}</strong>
+        {alts(symbol)}
+      </>
+    );
   } else if (mode === 'notes' || mode === 'sequence') {
     body = empty ? (
       hint(mode === 'sequence' ? 'Click notes in the order you want them played. Click again to remove one.' : 'Click keys or frets to add notes. Click again to remove one.')
     ) : (
-      <strong className="instrument-name">{names.join('  ')}</strong>
+      <>
+        <strong className="instrument-name">{names.join('  ')}</strong>
+        {mode === 'notes' && alts(null)}
+      </>
     );
   } else {
     // chord / chords
@@ -431,7 +472,10 @@ function Readout({
         {hint(midis.length < 3 && new Set(pcs).size < 3 ? 'Add another note to make a chord.' : "That's not a chord I can name. Try adding or removing a note.")}
       </>
     ) : (
-      <strong className="instrument-name">{prettyAccidentals(current)}</strong>
+      <>
+        <strong className="instrument-name">{prettyAccidentals(current)}</strong>
+        {alts(current)}
+      </>
     );
   }
 

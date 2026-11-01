@@ -1091,6 +1091,14 @@ textarea.input {
   gap: 4px 12px;
   flex: 1;
 }
+.instrument-alt {
+  color: var(--mn-muted);
+  border-color: transparent;
+  margin-left: -8px;
+}
+.instrument-alt:hover {
+  color: inherit;
+}
 .instrument-name {
   font-size: 17px;
   font-weight: 650;
