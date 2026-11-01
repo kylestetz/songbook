@@ -1,0 +1,36 @@
+/* Page chrome for published documents only. */
+html,
+body {
+  margin: 0;
+  background: var(--mn-bg);
+  color: var(--mn-text);
+}
+::selection {
+  background: var(--mn-selection);
+}
+.mn-page {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 72px 24px 120px;
+}
+.mn-byline {
+  margin-top: 4em;
+  color: var(--mn-muted);
+  font-family: var(--mn-font);
+  font-size: 14px;
+}
+.mn-widget-block {
+  display: block;
+}
+.mn-fallback {
+  color: var(--mn-muted);
+  font-style: italic;
+}
+@media (max-width: 560px) {
+  .mn-page {
+    padding: 40px 16px 80px;
+  }
+  .mn-doc {
+    font-size: 16px;
+  }
+}

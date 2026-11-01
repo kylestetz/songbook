@@ -1,0 +1,173 @@
+/* ProseMirror editor surface */
+.ProseMirror {
+  outline: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  caret-color: var(--mn-accent);
+  min-height: 60vh;
+  position: relative;
+  font-variant-ligatures: none;
+}
+.ProseMirror pre {
+  white-space: pre-wrap;
+}
+.ProseMirror li {
+  position: relative;
+}
+.ProseMirror-hideselection *::selection {
+  background: transparent;
+}
+.ProseMirror-hideselection {
+  caret-color: transparent;
+}
+.ProseMirror-gapcursor {
+  display: none;
+  pointer-events: none;
+  position: absolute;
+}
+.ProseMirror-gapcursor:after {
+  content: '';
+  display: block;
+  position: absolute;
+  top: -2px;
+  width: 20px;
+  border-top: 2px solid var(--mn-accent);
+  animation: gapcursor-blink 1.1s steps(2, start) infinite;
+}
+@keyframes gapcursor-blink {
+  to {
+    visibility: hidden;
+  }
+}
+.ProseMirror-focused .ProseMirror-gapcursor {
+  display: block;
+}
+
+/* Placeholder & empty-line hint */
+.mn-editor .is-placeholder::before,
+.mn-editor .is-hint::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  pointer-events: none;
+  color: var(--mn-faint);
+}
+.mn-editor .is-hint::before {
+  opacity: 0;
+  transition: opacity 0.2s ease 0.6s;
+}
+.mn-editor.ProseMirror-focused .is-hint::before {
+  opacity: 0.8;
+}
+.mn-editor > .is-placeholder:first-child::before {
+  font-size: inherit;
+}
+
+/* Horizontal rules are wrapped in a div so they can be selected */
+.mn-hr {
+  padding: 0.6em 0;
+}
+.mn-hr hr {
+  margin: 1.2em auto;
+}
+.mn-hr.ProseMirror-selectednode hr {
+  background: var(--mn-accent);
+}
+
+/* Images */
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 2px solid var(--mn-accent);
+  outline-offset: 2px;
+}
+
+/* Code blocks with a language field */
+.mn-codeblock {
+  position: relative;
+}
+.mn-codeblock pre {
+  margin: 0;
+}
+.mn-codeblock-meta {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  z-index: 1;
+}
+.mn-codeblock-lang {
+  border: none;
+  background: transparent;
+  font-family: var(--mn-font);
+  font-size: 11px;
+  color: var(--mn-faint);
+  text-align: right;
+  width: 90px;
+  padding: 2px 4px;
+  border-radius: 4px;
+  outline: none;
+}
+.mn-codeblock-lang:focus,
+.mn-codeblock:hover .mn-codeblock-lang {
+  background: var(--mn-card);
+  color: var(--mn-muted);
+}
+.mn-codeblock-lang::placeholder {
+  color: transparent;
+}
+.mn-codeblock:hover .mn-codeblock-lang::placeholder,
+.mn-codeblock-lang:focus::placeholder {
+  color: var(--mn-faint);
+}
+
+/* Widgets inside the editor */
+.mn-editor .mn-widget-block {
+  position: relative;
+  margin-top: 1.3em;
+  margin-bottom: 1.3em;
+}
+.mn-editor .mn-widget-block.ProseMirror-selectednode .mn-card {
+  box-shadow: 0 0 0 2px var(--mn-accent), var(--mn-shadow);
+  border-color: transparent;
+}
+.mn-editor .mn-widget-inline.ProseMirror-selectednode .mn-pill {
+  box-shadow: 0 0 0 2px var(--mn-accent);
+}
+.mn-widget-toolbar {
+  position: absolute;
+  top: 8px;
+  right: -12px;
+  transform: translateX(100%);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+.mn-widget-block:hover .mn-widget-toolbar,
+.mn-widget-block.ProseMirror-selectednode .mn-widget-toolbar {
+  opacity: 1;
+}
+.mn-widget-edit {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid var(--mn-border);
+  background: var(--mn-card);
+  color: var(--mn-muted);
+  border-radius: 7px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 550;
+  font-family: var(--mn-font);
+  box-shadow: var(--mn-shadow);
+}
+.mn-widget-edit svg {
+  width: 13px;
+  height: 13px;
+}
+.mn-widget-edit:hover {
+  color: var(--mn-accent);
+  border-color: var(--mn-accent);
+}
+@media (max-width: 1100px) {
+  .mn-widget-toolbar {
+    right: 8px;
+    top: -14px;
+    transform: none;
+  }
+}

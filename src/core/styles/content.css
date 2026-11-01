@@ -1,0 +1,236 @@
+/* Document typography. `.mn-doc` is both the editor surface and the published article. */
+.mn-doc {
+  font-family: var(--mn-font);
+  font-size: 17px;
+  line-height: 1.68;
+  color: var(--mn-text);
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: 'kern', 'liga';
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.mn-doc :where(p) {
+  margin: 0;
+}
+.mn-doc > * + * {
+  margin-top: 0.9em;
+}
+
+.mn-doc h1,
+.mn-doc h2,
+.mn-doc h3,
+.mn-doc h4,
+.mn-doc h5,
+.mn-doc h6 {
+  font-family: var(--mn-font-display);
+  font-weight: 650;
+  line-height: 1.22;
+  letter-spacing: -0.012em;
+  margin: 1.6em 0 0.4em;
+}
+.mn-doc > h1:first-child,
+.mn-doc > h2:first-child,
+.mn-doc > h3:first-child {
+  margin-top: 0;
+}
+.mn-doc h1 {
+  font-size: 2em;
+  font-weight: 700;
+  letter-spacing: -0.022em;
+}
+.mn-doc h2 {
+  font-size: 1.45em;
+}
+.mn-doc h3 {
+  font-size: 1.18em;
+}
+.mn-doc h4 {
+  font-size: 1em;
+}
+.mn-doc h5,
+.mn-doc h6 {
+  font-size: 0.88em;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--mn-muted);
+}
+
+.mn-doc a {
+  color: var(--mn-accent);
+  text-decoration: underline;
+  text-decoration-color: var(--mn-accent-soft);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1.5px;
+}
+.mn-doc a:hover {
+  text-decoration-color: var(--mn-accent);
+}
+
+.mn-doc strong {
+  font-weight: 650;
+}
+.mn-doc s,
+.mn-doc del {
+  color: var(--mn-muted);
+}
+
+.mn-doc blockquote {
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0.1em 0 0.1em 1.1em;
+  border-left: 3px solid var(--mn-border-strong);
+  color: var(--mn-muted);
+}
+.mn-doc blockquote > * + * {
+  margin-top: 0.6em;
+}
+
+.mn-doc ul,
+.mn-doc ol {
+  padding-left: 1.4em;
+}
+.mn-doc li {
+  margin: 0.2em 0;
+}
+.mn-doc li > p {
+  margin: 0;
+}
+.mn-doc li::marker {
+  color: var(--mn-faint);
+}
+
+.mn-doc hr {
+  border: none;
+  height: 1px;
+  background: var(--mn-border-strong);
+  margin: 2.2em auto;
+  width: 40%;
+}
+
+.mn-doc img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--mn-radius-sm);
+  display: inline-block;
+  vertical-align: bottom;
+}
+
+.mn-doc code {
+  font-family: var(--mn-font-mono);
+  font-size: 0.86em;
+  background: var(--mn-code-bg);
+  padding: 0.12em 0.36em;
+  border-radius: 5px;
+}
+
+.mn-doc pre {
+  font-family: var(--mn-font-mono);
+  font-size: 0.84em;
+  line-height: 1.6;
+  background: var(--mn-code-bg);
+  border-radius: var(--mn-radius-sm);
+  padding: 0.9em 1.1em;
+  overflow-x: auto;
+  tab-size: 2;
+}
+.mn-doc pre code {
+  background: none;
+  padding: 0;
+  font-size: inherit;
+  white-space: pre;
+}
+
+/* Syntax highlighting (highlight.js class names) */
+.mn-doc .hljs-comment,
+.mn-doc .hljs-quote {
+  color: var(--mn-faint);
+  font-style: italic;
+}
+.mn-doc .hljs-keyword,
+.mn-doc .hljs-selector-tag,
+.mn-doc .hljs-literal,
+.mn-doc .hljs-section,
+.mn-doc .hljs-doctag,
+.mn-doc .hljs-name {
+  color: #a23ad6;
+}
+.mn-doc .hljs-string,
+.mn-doc .hljs-regexp,
+.mn-doc .hljs-addition,
+.mn-doc .hljs-attribute,
+.mn-doc .hljs-meta .hljs-string {
+  color: #1f8a4c;
+}
+.mn-doc .hljs-number,
+.mn-doc .hljs-symbol,
+.mn-doc .hljs-bullet,
+.mn-doc .hljs-variable,
+.mn-doc .hljs-template-variable,
+.mn-doc .hljs-link {
+  color: #c25e00;
+}
+.mn-doc .hljs-title,
+.mn-doc .hljs-title.function_,
+.mn-doc .hljs-function .hljs-title {
+  color: #2f6bff;
+}
+.mn-doc .hljs-type,
+.mn-doc .hljs-built_in,
+.mn-doc .hljs-class .hljs-title,
+.mn-doc .hljs-title.class_ {
+  color: #b5480f;
+}
+.mn-doc .hljs-attr,
+.mn-doc .hljs-property,
+.mn-doc .hljs-selector-class,
+.mn-doc .hljs-selector-id {
+  color: #0a7d9b;
+}
+.mn-doc .hljs-meta {
+  color: var(--mn-muted);
+}
+.mn-doc .hljs-deletion {
+  color: var(--mn-danger);
+}
+.mn-doc .hljs-emphasis {
+  font-style: italic;
+}
+.mn-doc .hljs-strong {
+  font-weight: 650;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .mn-doc .hljs-keyword,
+  :root:not([data-theme='light']) .mn-doc .hljs-selector-tag,
+  :root:not([data-theme='light']) .mn-doc .hljs-literal,
+  :root:not([data-theme='light']) .mn-doc .hljs-name {
+    color: #d08cff;
+  }
+  :root:not([data-theme='light']) .mn-doc .hljs-string,
+  :root:not([data-theme='light']) .mn-doc .hljs-attribute {
+    color: #6fd39a;
+  }
+  :root:not([data-theme='light']) .mn-doc .hljs-number,
+  :root:not([data-theme='light']) .mn-doc .hljs-variable,
+  :root:not([data-theme='light']) .mn-doc .hljs-symbol {
+    color: #ffae5c;
+  }
+  :root:not([data-theme='light']) .mn-doc .hljs-title,
+  :root:not([data-theme='light']) .mn-doc .hljs-title.function_ {
+    color: #8aadff;
+  }
+  :root:not([data-theme='light']) .mn-doc .hljs-attr,
+  :root:not([data-theme='light']) .mn-doc .hljs-property {
+    color: #5cc8e6;
+  }
+  :root:not([data-theme='light']) .mn-doc .hljs-type,
+  :root:not([data-theme='light']) .mn-doc .hljs-built_in {
+    color: #f29a5c;
+  }
+}
+
+/* Block widgets get a little more room than paragraphs */
+.mn-doc .mn-widget-block {
+  margin-top: 1.4em;
+  margin-bottom: 1.4em;
+}
