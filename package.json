@@ -1,0 +1,74 @@
+{
+  "name": "music-notes",
+  "productName": "Music Notes",
+  "version": "0.1.0",
+  "description": "A writing app for music, with interactive musical widgets.",
+  "main": "out/main/index.js",
+  "author": "Kyle Stetz",
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": {
+    "@types/markdown-it": "^14.2.0",
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "electron": "^45.2.1",
+    "electron-builder": "^26.18.0",
+    "electron-vite": "^6.0.0",
+    "jsdom": "^30.1.3",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5"
+  },
+  "dependencies": {
+    "@tonaljs/tonal": "^4.10.0",
+    "highlight.js": "^11.12.0",
+    "lowlight": "^3.3.0",
+    "markdown-it": "^14.3.3",
+    "prosemirror-commands": "^1.7.2",
+    "prosemirror-dropcursor": "^1.8.4",
+    "prosemirror-gapcursor": "^1.4.1",
+    "prosemirror-history": "^1.5.1",
+    "prosemirror-inputrules": "^1.5.1",
+    "prosemirror-keymap": "^1.2.3",
+    "prosemirror-markdown": "^1.13.9",
+    "prosemirror-model": "^1.25.12",
+    "prosemirror-schema-list": "^1.6.0",
+    "prosemirror-state": "^1.4.4",
+    "prosemirror-transform": "^1.12.4",
+    "prosemirror-view": "^1.42.9",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "yaml": "^2.9.1"
+  },
+  "scripts": {
+    "dev": "npm run build:runtime && electron-vite dev",
+    "start": "electron-vite preview",
+    "build": "npm run build:runtime && electron-vite build",
+    "build:runtime": "vite build --config vite.runtime.config.mts",
+    "web": "npm run build:runtime && vite --config vite.web.config.mts",
+    "build:web": "npm run build:runtime && vite build --config vite.web.config.mts",
+    "dist": "npm run build && electron-builder --mac",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "build": {
+    "appId": "com.kylestetz.musicnotes",
+    "productName": "Music Notes",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.music",
+      "target": [
+        "dmg",
+        "zip"
+      ]
+    }
+  }
+}
