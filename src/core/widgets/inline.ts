@@ -51,7 +51,7 @@ export const noteWidget: WidgetDefinition = {
   icon: WIDGET_ICONS.note,
   labelField: 'pitch',
   fields: [
-    { key: 'pitch', label: 'Note', type: 'note', required: true, placeholder: 'C4' },
+    { key: 'pitch', label: 'Note', type: 'note', required: true, placeholder: 'C4', instrument: { mode: 'note' } },
     SOUND_FIELD,
   ],
   defaults: { pitch: 'C4' },
@@ -79,7 +79,7 @@ export const chordWidget: WidgetDefinition = {
   icon: WIDGET_ICONS.chord,
   labelField: 'symbol',
   fields: [
-    { key: 'symbol', label: 'Chord', type: 'chord', required: true, placeholder: 'Cmaj7' },
+    { key: 'symbol', label: 'Chord', type: 'chord', required: true, placeholder: 'Cmaj7', instrument: { mode: 'chord', octave: 'octave' } },
     { key: 'octave', label: 'Octave', type: 'select', options: OCTAVE_OPTIONS, advanced: true },
     SOUND_FIELD,
   ],
@@ -110,7 +110,7 @@ export const notesWidget: WidgetDefinition = {
   icon: WIDGET_ICONS.notes,
   labelField: 'notes',
   fields: [
-    { key: 'notes', label: 'Notes', type: 'notes', required: true, placeholder: 'C4 E4 G4', help: 'Separate notes with spaces. Octaves are optional.' },
+    { key: 'notes', label: 'Notes', type: 'notes', required: true, placeholder: 'C4 E4 G4', help: 'Separate notes with spaces. Octaves are optional.', instrument: { mode: 'sequence', octave: 'octave' } },
     { key: 'chord', label: 'Play together as a chord', type: 'boolean' },
     { key: 'octave', label: 'Starting octave', type: 'select', options: OCTAVE_OPTIONS, advanced: true },
     SOUND_FIELD,
@@ -163,7 +163,7 @@ export const intervalWidget: WidgetDefinition = {
   icon: WIDGET_ICONS.interval,
   labelField: 'notes',
   fields: [
-    { key: 'notes', label: 'From and to', type: 'notes', required: true, placeholder: 'C4 G4', help: 'Two notes, e.g. "C4 G4" or "E Bb".' },
+    { key: 'notes', label: 'From and to', type: 'notes', required: true, placeholder: 'C4 G4', help: 'Two notes, e.g. "C4 G4" or "E Bb".', instrument: { mode: 'interval' } },
     {
       key: 'play',
       label: 'Playback',

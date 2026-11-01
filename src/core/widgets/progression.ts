@@ -19,6 +19,7 @@ export const progressionWidget: WidgetDefinition = {
       required: true,
       placeholder: 'Dm7 G7 Cmaj7  or  ii7 V7 Imaj7',
       help: 'Chord symbols or roman numerals (with a key), separated by spaces. "|" bar lines are ignored.',
+      instrument: { mode: 'chords', octave: 'octave' },
     },
     { key: 'key', label: 'Key', type: 'key', help: 'Shows roman numerals and lets you write numerals like ii7 V7 I.' },
     {

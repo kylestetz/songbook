@@ -109,3 +109,32 @@ describe('roll', () => {
     expect(formatRoll(r)).toBe('C4@0+2 E4@4 G4@8+4');
   });
 });
+
+import { Note } from '@tonaljs/tonal';
+import { detectChords, fitToStrings, friendlyNote, getTuning as tuningFor, spellNotes } from '../src/core/theory';
+
+describe('playing notes to name chords', () => {
+  const m = (...names: string[]) => names.map((n) => Note.midi(n)!);
+  it('names root-position and inverted chords naturally', () => {
+    expect(detectChords(m('C4', 'E4', 'G4'))[0]).toBe('C');
+    expect(detectChords(m('E3', 'G3', 'C4'))[0]).toBe('C/E');
+    expect(detectChords(m('A2', 'C3', 'E3', 'G3'))[0]).toBe('Am7');
+    expect(detectChords(m('C3', 'D3', 'G3'))[0]).toBe('Csus2');
+    expect(detectChords(m('E2', 'B2', 'E3', 'G#3', 'B3', 'E4'))[0]).toBe('E');
+    expect(detectChords(m('E2', 'B2'))).toEqual(['E5']);
+    expect(detectChords(m('C4'))).toEqual([]);
+  });
+  it('spells notes the way chord charts do', () => {
+    expect(friendlyNote(63)).toBe('Eb4');
+    expect(friendlyNote(66)).toBe('F#4');
+    expect(spellNotes(m('E3', 'G#3', 'B3'))).toEqual(['E3', 'G#3', 'B3']);
+    expect(spellNotes(m('F3', 'G#3', 'C4'))).toEqual(['F3', 'Ab3', 'C4']);
+    expect(detectChords(m('E2', 'B2', 'E3', 'G#3', 'B3', 'E4'))).toEqual(['E']);
+  });
+  it('fits notes onto guitar strings', () => {
+    const std = tuningFor('standard');
+    expect(fitToStrings(m('E4'), std)).toEqual([null, null, null, null, null, 0]);
+    expect(fitToStrings(m('A2', 'E3', 'A3', 'C4', 'E4'), std)).toEqual([null, 0, 2, 2, 1, 0]);
+    expect(fitToStrings(m('C1'), std)).toBeNull();
+  });
+});
