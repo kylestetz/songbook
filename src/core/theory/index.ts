@@ -26,3 +26,4 @@ export function resolveNotes(input: string, octave = 4): string[] {
   }
   return ascendingOctaves(tokens.filter((t) => parseNote(t)), octave);
 }
+export * from './detect';

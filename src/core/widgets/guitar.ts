@@ -34,7 +34,7 @@ export const guitarWidget: WidgetDefinition = {
   icon: WIDGET_ICONS.guitar,
   labelField: 'chord',
   fields: [
-    { key: 'chord', label: 'Chord', type: 'chord', required: true, placeholder: 'Am7' },
+    { key: 'chord', label: 'Chord', type: 'chord', required: true, placeholder: 'Am7', instrument: { mode: 'chord', frets: 'frets' } },
     {
       key: 'frets',
       label: 'Fingering',

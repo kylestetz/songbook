@@ -1,5 +1,5 @@
 import { Interval, Note } from '@tonaljs/tonal';
-import { degreeLabel, displayNote, isChord, parseChord, prettyAccidentals, resolveNotes, tokenize } from '../theory';
+import { degreeLabel, detectChords, displayNote, isChord, parseChord, prettyAccidentals, resolveNotes, tokenize } from '../theory';
 import { chordSymbolEl } from './symbol';
 import { card, errorBox, h, playButton, soundFor } from './dom';
 import { CAPTION_FIELD, OCTAVE_OPTIONS, SOUND_FIELD, WIDGET_ICONS } from './common';
@@ -14,7 +14,7 @@ export const pianoWidget: WidgetDefinition = {
   icon: WIDGET_ICONS.piano,
   labelField: 'notes',
   fields: [
-    { key: 'notes', label: 'Chord or notes', type: 'notes', required: true, placeholder: 'Cmaj7  or  C4 E4 G4 B4', help: 'A chord symbol, or notes separated by spaces.' },
+    { key: 'notes', label: 'Chord or notes', type: 'notes', required: true, placeholder: 'Cmaj7  or  C4 E4 G4 B4', help: 'A chord symbol, or notes separated by spaces.', instrument: { mode: 'notes', octave: 'octave' } },
     { key: 'octave', label: 'Octave', type: 'select', options: OCTAVE_OPTIONS },
     {
       key: 'labels',
@@ -51,10 +51,16 @@ export const pianoWidget: WidgetDefinition = {
     if (chordSymbol) {
       title = chordSymbolEl(chordSymbol);
     }
+    // Notes picked by hand: name the chord they make, if they make one.
+    const named = !chord && notes.length > 1 ? parseChord(detectChords(notes.map((n) => Note.midi(n)!))[0] ?? '') : null;
     const { el: frame, body, actions } = card({
       kind: 'piano',
       title,
-      subtitle: chord ? `${chord.name} · ${notes.map((n) => displayNote(n, { octave: false })).join(' ')}` : undefined,
+      subtitle: chord
+        ? `${chord.name} · ${notes.map((n) => displayNote(n, { octave: false })).join(' ')}`
+        : named
+          ? `${prettyAccidentals(named.symbol)} · ${named.name}`
+          : undefined,
       caption: values.caption,
     });
     if (!notes.length) {

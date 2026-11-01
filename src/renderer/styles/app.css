@@ -986,3 +986,296 @@ textarea.input {
   gap: 6px;
   margin-top: 8px;
 }
+
+/* ---------- Instrument input (piano / guitar / type) ---------- */
+.modal.has-instrument {
+  width: min(1000px, 100%);
+}
+.instrument-panel {
+  flex-shrink: 0;
+  border-top: 1px solid var(--mn-border);
+  padding: 12px 18px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.instrument-dock {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 59;
+  background: var(--popover-bg);
+  box-shadow: var(--popover-shadow);
+  animation: dock-in 0.16s ease;
+}
+.instrument-dock .instrument-panel {
+  border-top: none;
+  max-width: 1040px;
+  margin: 0 auto;
+}
+@keyframes dock-in {
+  from {
+    transform: translateY(12px);
+    opacity: 0;
+  }
+}
+.instrument-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.instrument-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mn-muted);
+}
+.instrument-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+.instrument-tabs button {
+  padding: 4px 14px;
+}
+.instrument-text {
+  max-width: 520px;
+  min-height: 60px;
+}
+.instrument-slots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.instrument-slot {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--mn-border-strong);
+  border-radius: 7px;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 600;
+}
+.instrument-slot button {
+  border: none;
+  background: transparent;
+  padding: 3px 9px;
+}
+.instrument-slot .instrument-slot-remove {
+  padding: 3px 7px 3px 2px;
+  color: var(--mn-faint);
+}
+.instrument-slot .instrument-slot-remove:hover {
+  color: var(--mn-danger);
+}
+.instrument-slot.is-new {
+  border-style: dashed;
+  color: var(--mn-muted);
+}
+.instrument-slot.is-on {
+  border-color: var(--mn-accent);
+  border-style: solid;
+  background: var(--mn-accent-soft);
+  color: var(--mn-accent-strong);
+}
+.instrument-readout {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 28px;
+}
+.instrument-readout-main {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  flex: 1;
+}
+.instrument-name {
+  font-size: 17px;
+  font-weight: 650;
+}
+.instrument-name.is-muted {
+  color: var(--mn-muted);
+}
+.instrument-hint {
+  font-size: 12.5px;
+  color: var(--mn-muted);
+}
+.instrument-alts {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--mn-faint);
+}
+
+/* Piano keys */
+.ii-piano {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+}
+.ii-piano-svg {
+  flex: 1;
+  min-width: 0;
+  height: auto;
+  max-height: 170px;
+  user-select: none;
+}
+.ii-shift {
+  border: 1px solid var(--mn-border);
+  background: transparent;
+  border-radius: 7px;
+  width: 26px;
+  font-size: 18px;
+  color: var(--mn-muted);
+}
+.ii-shift:hover:not(:disabled) {
+  background: var(--mn-surface);
+  color: var(--mn-text);
+}
+.ii-shift:disabled {
+  opacity: 0.35;
+}
+.ii-key {
+  cursor: pointer;
+}
+.ii-key rect {
+  stroke: var(--mn-key-white-edge);
+  stroke-width: 1;
+  transition: fill 0.08s ease;
+}
+.ii-key-white rect {
+  fill: var(--mn-key-white);
+}
+.ii-key-white:hover rect {
+  fill: color-mix(in srgb, var(--mn-key-mark) 8%, var(--mn-key-white));
+}
+.ii-key-black rect {
+  fill: var(--mn-key-black);
+  stroke: var(--mn-key-black);
+}
+.ii-key-black:hover rect {
+  fill: color-mix(in srgb, var(--mn-key-mark) 30%, var(--mn-key-black));
+}
+.ii-key-white.is-on rect {
+  fill: color-mix(in srgb, var(--mn-key-mark) 16%, var(--mn-key-white));
+}
+.ii-key-black.is-on rect {
+  fill: color-mix(in srgb, var(--mn-key-mark) 60%, var(--mn-key-black));
+}
+.ii-key-dot {
+  fill: var(--mn-key-mark);
+}
+.ii-key text {
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-family: var(--mn-font-rounded);
+  font-weight: 650;
+  pointer-events: none;
+}
+.ii-key-dot-label {
+  fill: #fff;
+  font-size: 11px;
+}
+.ii-key-dot-label.is-small {
+  font-size: 8.5px;
+}
+.ii-key-c {
+  fill: var(--mn-faint);
+  font-size: 10px;
+}
+
+/* Guitar fretboard */
+.ii-guitar-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 190px;
+  user-select: none;
+}
+.ii-fret {
+  stroke: var(--mn-border-strong);
+  stroke-width: 1.5;
+}
+.ii-nut {
+  stroke: var(--mn-text);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.ii-string {
+  stroke: var(--mn-muted);
+}
+.is-unused .ii-string {
+  stroke-dasharray: 3 3;
+  opacity: 0.6;
+}
+.ii-string-name,
+.ii-fret-num {
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-family: var(--mn-font-rounded);
+  font-weight: 600;
+  font-size: 11px;
+  fill: var(--mn-muted);
+}
+.is-unused .ii-string-name {
+  fill: var(--mn-faint);
+}
+.ii-fret-num {
+  fill: var(--mn-faint);
+  font-size: 10px;
+}
+.ii-fret-num.is-marked {
+  fill: var(--mn-muted);
+}
+.ii-inlay {
+  fill: var(--mn-border);
+}
+.ii-cell {
+  cursor: pointer;
+}
+.ii-cell-hover {
+  fill: var(--mn-accent);
+  opacity: 0;
+  transition: opacity 0.08s ease;
+}
+.ii-cell:hover .ii-cell-hover {
+  opacity: 0.22;
+}
+.ii-pick circle {
+  fill: var(--mn-accent);
+}
+.ii-pick.is-open circle {
+  fill: var(--popover-bg);
+  stroke: var(--mn-accent);
+  stroke-width: 2;
+}
+.ii-pick text {
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-family: var(--mn-font-rounded);
+  font-weight: 650;
+  font-size: 10px;
+  fill: var(--mn-on-accent);
+}
+.ii-pick.is-open text {
+  fill: var(--mn-accent-strong);
+}
+.ii-guitar-hint {
+  font-size: 11.5px;
+  color: var(--mn-faint);
+  margin-top: 2px;
+}
+.ii-muted {
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-size: 15px;
+  fill: var(--mn-faint);
+  pointer-events: none;
+}
+.button:disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
