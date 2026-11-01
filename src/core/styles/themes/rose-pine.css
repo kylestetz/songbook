@@ -1,0 +1,52 @@
+/*
+ * Rosé Pine: "all natural pine, faux fur and a bit of soho vibes" (rosepinetheme.com).
+ * Dawn (light) and Main (dark) variants, with Iris as the accent. Dawn's
+ * accent and secondary text are deepened slightly so they meet WCAG AA.
+ * A humanist sans for headings and soft, generous corners.
+ */
+[data-theme='rose-pine'] {
+  --mn-font-ui: var(--mn-stack-system);
+  --mn-font-body: var(--mn-stack-system);
+  --mn-font-heading: var(--mn-stack-humanist);
+  --mn-font-label: var(--mn-stack-rounded);
+  --mn-font-mono: var(--mn-stack-mono);
+  --mn-body-size: 17px;
+  --mn-body-leading: 1.7;
+  --mn-heading-weight: 600;
+  --mn-heading-tracking: 0em;
+
+  --mn-radius-lg: 18px;
+  --mn-radius: 14px;
+  --mn-radius-sm: 10px;
+  --mn-radius-xs: 7px;
+
+  --mn-bg: light-dark(#faf4ed, #191724);
+  --mn-sidebar: light-dark(#f4ede8, #1f1d2e);
+  --mn-surface: light-dark(#f2e9e1, #26233a);
+  --mn-card: light-dark(#fffaf3, #1f1d2e);
+  --mn-popover: light-dark(#fffaf3, #26233a);
+  --mn-code-bg: light-dark(#f2e9e1, #21202e);
+
+  --mn-text: light-dark(#575279, #e0def4);
+  --mn-muted: light-dark(#6c6889, #908caa);
+  --mn-faint: light-dark(#9893a5, #6e6a86);
+  --mn-border: light-dark(#dfdad9, #2f2c42);
+  --mn-border-strong: light-dark(#cecacd, #403d52);
+
+  --mn-accent: light-dark(#7a5f9a, #c4a7e7);
+  --mn-accent-strong: light-dark(#664d85, #d6c2f0);
+  --mn-on-accent: light-dark(#fffaf3, #191724);
+  --mn-danger: light-dark(#a3526a, #eb6f92);
+
+  --mn-key-white: light-dark(#fffaf3, #e0def4);
+  --mn-key-white-edge: light-dark(#cecacd, #524f67);
+  --mn-key-black: light-dark(#575279, #110f1a);
+  --mn-shadow-color: light-dark(#575279, #000000);
+
+  --mn-syntax-keyword: light-dark(#286983, #9ccfd8);
+  --mn-syntax-string: light-dark(#a8681a, #f6c177);
+  --mn-syntax-number: light-dark(#b4637a, #ebbcba);
+  --mn-syntax-function: light-dark(#b0585a, #ebbcba);
+  --mn-syntax-type: light-dark(#3e7a85, #9ccfd8);
+  --mn-syntax-attr: light-dark(#7a5f9a, #c4a7e7);
+}

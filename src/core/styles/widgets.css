@@ -8,7 +8,7 @@
   border-radius: 999px;
   background: var(--mn-accent-soft);
   color: var(--mn-accent-strong);
-  font-family: var(--mn-font-rounded);
+  font-family: var(--mn-font-label);
   font-weight: 600;
   font-size: 0.92em;
   line-height: 1.45;
@@ -30,7 +30,7 @@
   animation: mn-pulse 0.5s ease-out;
 }
 .mn-pill.is-invalid {
-  background: color-mix(in srgb, var(--mn-danger) 12%, transparent);
+  background: var(--mn-danger-soft);
   color: var(--mn-danger);
   cursor: default;
 }
@@ -82,9 +82,9 @@
   opacity: 0.8;
 }
 .mn-pill.mn-chord {
-  font-family: var(--mn-font-display);
+  font-family: var(--mn-font-heading);
   font-weight: 650;
-  border-radius: 7px;
+  border-radius: var(--mn-radius-xs);
 }
 
 @keyframes mn-pulse {
@@ -109,7 +109,7 @@
   border-radius: var(--mn-radius);
   box-shadow: var(--mn-shadow);
   padding: 14px 16px 16px;
-  font-family: var(--mn-font);
+  font-family: var(--mn-font-ui);
   font-size: 15px;
   line-height: 1.4;
   user-select: none;
@@ -126,7 +126,7 @@
   min-width: 0;
 }
 .mn-card-title {
-  font-family: var(--mn-font-display);
+  font-family: var(--mn-font-heading);
   font-weight: 650;
   font-size: 18px;
   letter-spacing: -0.01em;
@@ -258,15 +258,16 @@
   fill: var(--mn-key-mark);
 }
 .mn-key text {
-  font-family: var(--mn-font-rounded);
+  font-family: var(--mn-font-label);
   font-size: 10px;
   font-weight: 700;
-  fill: #fff;
+  fill: var(--mn-on-key-mark-soft);
   pointer-events: none;
 }
-.mn-key.is-tone:not(.is-root) .mn-key-white text,
-.mn-key-white.is-tone:not(.is-root) text {
-  fill: #fff;
+.mn-key.is-root text,
+.mn-key.is-active text,
+.mn-key.is-pressed text {
+  fill: var(--mn-on-key-mark);
 }
 .mn-key .mn-key-label-sm {
   font-size: 8px;
@@ -302,7 +303,7 @@
   align-items: center;
   min-width: 40px;
   padding: 5px 8px 4px;
-  border-radius: 9px;
+  border-radius: var(--mn-radius-sm);
   background: var(--mn-surface);
   border: 1px solid transparent;
   cursor: pointer;
@@ -325,12 +326,12 @@
   opacity: 0.8;
 }
 .mn-chip-main {
-  font-family: var(--mn-font-display);
+  font-family: var(--mn-font-heading);
   font-weight: 650;
   font-size: 15px;
 }
 .mn-chip-sub {
-  font-family: var(--mn-font-rounded);
+  font-family: var(--mn-font-label);
   font-size: 11.5px;
   color: var(--mn-muted);
   font-weight: 600;
@@ -346,7 +347,7 @@
   gap: 8px;
 }
 .mn-prog-cell {
-  border-radius: 10px;
+  border-radius: var(--mn-radius-sm);
   background: var(--mn-surface);
   padding: 8px 10px 9px;
   cursor: pointer;
@@ -366,14 +367,14 @@
   cursor: default;
 }
 .mn-prog-roman {
-  font-family: var(--mn-font-rounded);
+  font-family: var(--mn-font-label);
   font-weight: 650;
   font-size: 12px;
   color: var(--mn-accent);
   letter-spacing: 0.02em;
 }
 .mn-prog-symbol {
-  font-family: var(--mn-font-display);
+  font-family: var(--mn-font-heading);
   font-size: 22px;
   font-weight: 650;
   letter-spacing: -0.01em;
@@ -411,18 +412,18 @@
 .mn-mute {
   fill: var(--mn-muted);
   font-size: 15px;
-  font-family: var(--mn-font);
+  font-family: var(--mn-font-ui);
 }
 .mn-fret-pos {
   fill: var(--mn-muted);
   font-size: 11px;
-  font-family: var(--mn-font-rounded);
+  font-family: var(--mn-font-label);
   font-weight: 600;
 }
 .mn-string-label {
   fill: var(--mn-muted);
   font-size: 11px;
-  font-family: var(--mn-font-rounded);
+  font-family: var(--mn-font-label);
   font-weight: 600;
 }
 .mn-string-hit:hover .mn-string-label {
@@ -468,7 +469,7 @@
 }
 .mn-roll-label {
   font-size: 9px;
-  font-family: var(--mn-font-rounded);
+  font-family: var(--mn-font-label);
   font-weight: 600;
   fill: var(--mn-muted);
   pointer-events: none;
@@ -524,7 +525,7 @@
   fill: var(--mn-accent);
 }
 .mn-circle-seg text {
-  font-family: var(--mn-font-display);
+  font-family: var(--mn-font-heading);
   font-weight: 600;
   font-size: 14px;
   fill: var(--mn-text);
@@ -534,7 +535,7 @@
   font-size: 11.5px;
 }
 .mn-circle-seg .mn-circle-roman {
-  font-family: var(--mn-font-rounded);
+  font-family: var(--mn-font-label);
   font-size: 9px;
   fill: var(--mn-accent);
 }
@@ -547,7 +548,7 @@
   fill: var(--mn-card);
 }
 .mn-circle-center {
-  font-family: var(--mn-font-display);
+  font-family: var(--mn-font-heading);
   font-weight: 700;
   font-size: 22px;
   fill: var(--mn-text);

@@ -1,0 +1,81 @@
+/*
+ * Design tokens shared by the app and published documents.
+ *
+ * Three layers:
+ *   1. Font stacks (--mn-stack-*): raw ingredients themes compose from.
+ *   2. Theme tokens: every theme in ./themes/ sets these, light and dark
+ *      together via light-dark(). See THEME_TOKENS in src/core/themes.ts.
+ *   3. Derived tokens (below): computed from theme tokens so a theme only has
+ *      to pick a handful of colors. A theme may still override any of them.
+ *
+ * Components should only read semantic tokens (--mn-text, --mn-accent, ...),
+ * never raw hex values, so every theme and scheme just works.
+ *
+ * Attributes (on <html>, or on any element to scope a preview):
+ *   data-theme="studio|manuscript|nord|rose-pine"   default: studio
+ *   data-color-scheme="light|dark"                  default: follow the OS
+ */
+
+/* ---------- Color scheme ---------- */
+:root {
+  color-scheme: light dark;
+}
+[data-color-scheme='light'] {
+  color-scheme: light;
+}
+[data-color-scheme='dark'] {
+  color-scheme: dark;
+}
+
+/* ---------- Font stacks ---------- */
+:root {
+  --mn-stack-system: -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, 'Segoe UI', 'Helvetica Neue', Arial,
+    sans-serif;
+  --mn-stack-system-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, 'Segoe UI',
+    'Helvetica Neue', Arial, sans-serif;
+  --mn-stack-rounded: ui-rounded, 'SF Pro Rounded', -apple-system, BlinkMacSystemFont, system-ui, 'Segoe UI', sans-serif;
+  --mn-stack-serif: 'Iowan Old Style', Charter, 'Bitstream Charter', 'Palatino Linotype', Palatino, 'Book Antiqua',
+    Georgia, serif;
+  --mn-stack-geometric: 'Avenir Next', Avenir, Montserrat, 'Segoe UI', system-ui, sans-serif;
+  --mn-stack-humanist: Optima, Candara, 'Noto Sans', 'Segoe UI', system-ui, sans-serif;
+  --mn-stack-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+}
+
+/* ---------- Derived tokens ---------- */
+/* Declared on every theme scope so they recompute from that scope's colors. */
+:root,
+[data-theme] {
+  /* Accent tints */
+  --mn-accent-soft: color-mix(in srgb, var(--mn-accent) 14%, transparent);
+  --mn-accent-softer: color-mix(in srgb, var(--mn-accent) 7%, transparent);
+  --mn-selection: color-mix(in srgb, var(--mn-accent) 22%, transparent);
+  --mn-focus-ring: 0 0 0 3px var(--mn-accent-soft);
+
+  /* Neutral interaction states: a wash of the text color over any surface */
+  --mn-hover: color-mix(in srgb, var(--mn-text) 5%, transparent);
+  --mn-selected: color-mix(in srgb, var(--mn-text) 8%, transparent);
+  --mn-danger-soft: color-mix(in srgb, var(--mn-danger) 12%, transparent);
+
+  /* Instruments: marked keys and fretted dots follow the accent */
+  --mn-key-mark: var(--mn-accent);
+  --mn-key-mark-soft: color-mix(in srgb, var(--mn-key-mark) 50%, var(--mn-card));
+  --mn-on-key-mark: var(--mn-on-accent);
+  --mn-on-key-mark-soft: var(--mn-text);
+
+  /* Elevation. --mn-shadow-color is a theme's shadow hue; dark schemes need far denser shadows. */
+  --mn-shadow-1: light-dark(
+    color-mix(in srgb, var(--mn-shadow-color) 4%, transparent),
+    color-mix(in srgb, var(--mn-shadow-color) 30%, transparent)
+  );
+  --mn-shadow-2: light-dark(
+    color-mix(in srgb, var(--mn-shadow-color) 14%, transparent),
+    color-mix(in srgb, var(--mn-shadow-color) 50%, transparent)
+  );
+  --mn-shadow: 0 1px 2px var(--mn-shadow-1), 0 2px 10px var(--mn-shadow-1);
+  --mn-shadow-popover: 0 0 0 0.5px light-dark(rgb(0 0 0 / 0.12), rgb(255 255 255 / 0.12)),
+    0 8px 28px var(--mn-shadow-2), 0 2px 6px var(--mn-shadow-1);
+  --mn-scrim: light-dark(
+    color-mix(in srgb, var(--mn-shadow-color) 28%, transparent),
+    color-mix(in srgb, var(--mn-shadow-color) 50%, transparent)
+  );
+}

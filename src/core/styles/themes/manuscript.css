@@ -1,0 +1,52 @@
+/*
+ * Manuscript: warm paper, iron-gall ink, a terracotta accent.
+ * Cream and sepia neutrals with a single warm accent from the same hue family
+ * (an analogous scheme), set in a bookish old-style serif. Smaller radii read
+ * as printed matter rather than app chrome.
+ */
+[data-theme='manuscript'] {
+  --mn-font-ui: var(--mn-stack-system);
+  --mn-font-body: var(--mn-stack-serif);
+  --mn-font-heading: var(--mn-stack-serif);
+  --mn-font-label: var(--mn-stack-system);
+  --mn-font-mono: var(--mn-stack-mono);
+  --mn-body-size: 18px;
+  --mn-body-leading: 1.62;
+  --mn-heading-weight: 600;
+  --mn-heading-tracking: -0.005em;
+
+  --mn-radius-lg: 10px;
+  --mn-radius: 6px;
+  --mn-radius-sm: 5px;
+  --mn-radius-xs: 4px;
+
+  --mn-bg: light-dark(#fbf8f1, #1f1b16);
+  --mn-sidebar: light-dark(#f4efe4, #1a1713);
+  --mn-surface: light-dark(#f3eee3, #2d2720);
+  --mn-card: light-dark(#fffdf8, #28231d);
+  --mn-popover: light-dark(#fffdf8, #2f2922);
+  --mn-code-bg: light-dark(#f2ece0, #2a241d);
+
+  --mn-text: light-dark(#2b2620, #ece4d6);
+  --mn-muted: light-dark(#6b6255, #a99e8c);
+  --mn-faint: light-dark(#a0968a, #6f6658);
+  --mn-border: light-dark(#e7e0d2, #3a332a);
+  --mn-border-strong: light-dark(#d6cdbb, #4a4136);
+
+  --mn-accent: light-dark(#a3461f, #e38c62);
+  --mn-accent-strong: light-dark(#863716, #eea27f);
+  --mn-on-accent: light-dark(#fffaf2, #1f1b16);
+  --mn-danger: light-dark(#b1243a, #f2788a);
+
+  --mn-key-white: light-dark(#fffdf8, #ece4d6);
+  --mn-key-white-edge: light-dark(#d3c9b6, #5c5347);
+  --mn-key-black: light-dark(#2b2620, #120f0c);
+  --mn-shadow-color: #3a2a17;
+
+  --mn-syntax-keyword: light-dark(#8a3b6b, #d79bc4);
+  --mn-syntax-string: light-dark(#4f6b2a, #b5c98a);
+  --mn-syntax-number: light-dark(#a3461f, #e38c62);
+  --mn-syntax-function: light-dark(#2f5f7a, #8fb8d4);
+  --mn-syntax-type: light-dark(#8a5a14, #e0b46a);
+  --mn-syntax-attr: light-dark(#3f6f6a, #8cc4bc);
+}

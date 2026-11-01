@@ -16,7 +16,7 @@ body {
 .mn-byline {
   margin-top: 4em;
   color: var(--mn-muted);
-  font-family: var(--mn-font);
+  font-family: var(--mn-font-ui);
   font-size: 14px;
 }
 .mn-widget-block {

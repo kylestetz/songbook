@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { getAudioEngine, INSTRUMENTS } from '../../core/audio';
 import { effectiveSettings, type DocSettings } from '../../core/markdown';
 import { IconPlay } from './icons';
+import { AppearancePicker } from './AppearancePicker';
 
 interface Props {
   settings: DocSettings;
@@ -112,6 +113,10 @@ export function SettingsPanel({ settings, onChange, onClose }: Props) {
         />
       </div>
       <div className="settings-foot">Stored in the note's front matter.</div>
+
+      <div className="settings-section-label">Appearance</div>
+      <AppearancePicker />
+      <div className="settings-foot">Applies to every note, and to HTML exports.</div>
     </div>
   );
 }
