@@ -1,4 +1,4 @@
-import { displayNote, parseKey, parseProgression, prettyAccidentals, voiceLead } from '../theory';
+import { parseKey, parseProgression, prettyAccidentals, voiceLead } from '../theory';
 import { chordSymbolEl } from './symbol';
 import { card, clickable, h, ICONS, playButton, soundFor } from './dom';
 import { CAPTION_FIELD, OCTAVE_OPTIONS, SOUND_FIELD, WIDGET_ICONS } from './common';
@@ -72,7 +72,6 @@ export const progressionWidget: WidgetDefinition = {
           { class: 'mn-prog-symbol' },
           st.symbol ? chordSymbolEl(st.symbol, 'mn-chord-inline') : st.input,
         ),
-        h('div', { class: 'mn-prog-notes' }, st.notes.map((n) => displayNote(n, { octave: false })).join(' ')),
       );
       if (st.symbol) {
         clickable(cell, () => {

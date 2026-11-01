@@ -361,10 +361,6 @@
   color: var(--mn-on-accent);
 }
 .mn-prog-cell.is-current .mn-prog-roman,
-.mn-prog-cell.is-current .mn-prog-notes {
-  color: inherit;
-  opacity: 0.8;
-}
 .mn-prog-cell.is-invalid {
   color: var(--mn-danger);
   cursor: default;
@@ -382,13 +378,6 @@
   font-weight: 650;
   letter-spacing: -0.01em;
   line-height: 1.3;
-}
-.mn-prog-notes {
-  font-size: 11.5px;
-  color: var(--mn-muted);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 /* ---------- Guitar ---------- */
@@ -443,13 +432,6 @@
 .mn-string-hit.is-active .mn-open {
   fill: var(--mn-accent-strong);
   stroke: var(--mn-accent-strong);
-}
-.mn-guitar-frets {
-  text-align: center;
-  font-family: var(--mn-font-mono);
-  font-size: 12px;
-  color: var(--mn-faint);
-  letter-spacing: 0.08em;
 }
 .mn-guitar .mn-card-header,
 .mn-circle .mn-card-header {
@@ -569,9 +551,4 @@
   font-weight: 700;
   font-size: 22px;
   fill: var(--mn-text);
-}
-.mn-circle-center-sub {
-  font-size: 11px;
-  fill: var(--mn-muted);
-  font-family: var(--mn-font);
 }

@@ -7,13 +7,6 @@ import type { WidgetDefinition } from './types';
 const MAJOR_ROMAN: Record<number, string> = { [-1]: 'IV', 0: 'I', 1: 'V' };
 const MINOR_ROMAN: Record<number, string> = { [-1]: 'ii', 0: 'vi', 1: 'iii' };
 
-function keySignature(idx: number): string {
-  if (idx === 0) return 'No sharps or flats';
-  if (idx === 6) return '6 sharps / 6 flats';
-  if (idx < 6) return `${idx} sharp${idx > 1 ? 's' : ''}`;
-  return `${12 - idx} flat${12 - idx > 1 ? 's' : ''}`;
-}
-
 export const circleWidget: WidgetDefinition = {
   name: 'circle',
   title: 'Circle of fifths',
@@ -32,12 +25,8 @@ export const circleWidget: WidgetDefinition = {
     // Index of the relative major in the circle
     const majorTonic = key.minor ? Note.transpose(key.tonic, '3m') : key.tonic;
     const idx = CIRCLE_MAJOR.findIndex((k) => Note.chroma(k) === Note.chroma(majorTonic));
-    const { el: frame, body } = card({
-      kind: 'circle',
-      title: `${prettyAccidentals(key.label)}`,
-      subtitle: keySignature(idx),
-      caption: values.caption,
-    });
+    const { el: frame, body } = card({ kind: 'circle', title: '', caption: values.caption });
+    frame.querySelector('.mn-card-header')?.remove();
     const size = 300;
     const c = size / 2;
     const R1 = 142;
@@ -100,9 +89,8 @@ export const circleWidget: WidgetDefinition = {
     }
     svg.append(s('circle', { class: 'mn-circle-hub', cx: c, cy: c, r: R3 - 4 }));
     svg.append(
-      s('text', { class: 'mn-circle-center', x: c, y: c - 6, 'text-anchor': 'middle', 'dominant-baseline': 'central' }, prettyAccidentals(key.tonic + (key.minor ? 'm' : ''))),
+      s('text', { class: 'mn-circle-center', x: c, y: c, 'text-anchor': 'middle', 'dominant-baseline': 'central' }, prettyAccidentals(key.tonic + (key.minor ? 'm' : ''))),
     );
-    svg.append(s('text', { class: 'mn-circle-center-sub', x: c, y: c + 14, 'text-anchor': 'middle', 'dominant-baseline': 'central' }, key.minor ? 'minor' : 'major'));
     body.append(h('div', { class: 'mn-circle-wrap' }, svg));
     el.append(frame);
   },

@@ -8,7 +8,7 @@ import type { WidgetDefinition } from './types';
 export const scaleWidget: WidgetDefinition = {
   name: 'scale',
   title: 'Scale or mode',
-  description: 'A scale on a keyboard, with degrees and diatonic chords',
+  description: 'A scale on a keyboard, optionally with its diatonic chords',
   kind: 'block',
   icon: WIDGET_ICONS.scale,
   fields: [
@@ -78,7 +78,6 @@ export const scaleWidget: WidgetDefinition = {
     const { el: frame, body, actions } = card({
       kind: 'scale',
       title: prettyAccidentals(info.name),
-      subtitle: info.pcs.map((n) => displayNote(n)).join('  '),
       caption: values.caption,
     });
 
@@ -89,26 +88,6 @@ export const scaleWidget: WidgetDefinition = {
       onKey: (m) => ctx.audio.play([Note.fromMidi(m)], { instrument: instrument(), duration: 0.9 }),
     });
     body.append(h('div', { class: 'mn-keyboard-wrap' }, kb.el));
-
-    // Degree chips
-    const chips = h('div', { class: 'mn-chips' });
-    const chipEls = info.notes.map((n, i) => {
-      const chip = h(
-        'span',
-        { class: `mn-chip${i === 0 || i === info.notes.length - 1 ? ' is-root' : ''}` },
-        h('span', { class: 'mn-chip-main' }, displayNote(n, { octave: false })),
-        h('span', { class: 'mn-chip-sub' }, info.degrees[i]),
-      );
-      clickable(chip, () => {
-        ctx.audio.play([n], { instrument: instrument(), duration: 0.9 });
-        kb.setActive([midis[i]]);
-        flash(chip);
-        setTimeout(() => kb.setActive([]), 400);
-      });
-      chips.append(chip);
-      return chip;
-    });
-    body.append(chips);
 
     // Diatonic chords
     const chordsMode = values.chords || 'none';
@@ -147,14 +126,9 @@ export const scaleWidget: WidgetDefinition = {
           seq.map((idx, i) => ({ time: i * step, notes: [info.notes[idx]], duration: step * 1.5 })),
           {
             instrument: instrument(),
-            onEvent: (i) => {
-              const idx = seq[i];
-              kb.setActive([midis[idx]]);
-              chipEls.forEach((c, j) => c.classList.toggle('is-current', j === idx));
-            },
+            onEvent: (i) => kb.setActive([midis[seq[i]]]),
             onEnd: () => {
               kb.setActive([]);
-              chipEls.forEach((c) => c.classList.remove('is-current'));
               btn.set(false);
             },
           },

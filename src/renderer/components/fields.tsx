@@ -2,7 +2,6 @@ import { useMemo, useRef, useState } from 'react';
 import { Note } from '@tonaljs/tonal';
 import {
   CHORD_SUFFIXES,
-  displayNote,
   formatFrets,
   formatRoll,
   getTuning,
@@ -164,9 +163,7 @@ export function ChordField({ field, value, onChange, autoFocus }: FieldProps) {
           ))}
         </div>
       </div>
-      {value ? (
-        <Hint ok={!!c}>{c ? `${c.name} · ${c.notes.map((n) => displayNote(n)).join(' ')}${c.bass ? ` over ${displayNote(c.bass)}` : ''}` : 'Unknown chord symbol'}</Hint>
-      ) : null}
+      {value && !c ? <Hint ok={false}>Unknown chord symbol</Hint> : null}
     </div>
   );
 }
@@ -176,7 +173,7 @@ export function NotesField({ field, value, values, onChange, autoFocus }: FieldP
   return (
     <div>
       <input className="input input-lg" value={value} placeholder={field.placeholder} onChange={(e) => onChange(e.target.value)} autoFocus={autoFocus} spellCheck={false} />
-      {value ? <Hint ok={resolved.length > 0}>{resolved.length ? resolved.map((n) => displayNote(n)).join('  ') : "Couldn't read these notes"}</Hint> : null}
+      {value && !resolved.length ? <Hint ok={false}>Couldn't read these notes</Hint> : null}
     </div>
   );
 }

@@ -94,7 +94,7 @@ export const chordWidget: WidgetDefinition = {
       pill(
         'chord',
         content,
-        c ? `${c.name}: ${notes.map((n) => displayNote(n, { octave: false })).join(' ')}` : 'Unknown chord',
+        c ? `Play ${prettyAccidentals(values.symbol)}` : 'Unknown chord',
         () => playNotes(ctx, values, notes, { together: true, strum: 0.025 }),
         !c,
       ),

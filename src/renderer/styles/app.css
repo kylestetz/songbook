@@ -1091,6 +1091,14 @@ textarea.input {
   gap: 4px 12px;
   flex: 1;
 }
+.instrument-alt {
+  color: var(--mn-muted);
+  border-color: transparent;
+  margin-left: -8px;
+}
+.instrument-alt:hover {
+  color: inherit;
+}
 .instrument-name {
   font-size: 17px;
   font-weight: 650;
@@ -1101,13 +1109,6 @@ textarea.input {
 .instrument-hint {
   font-size: 12.5px;
   color: var(--mn-muted);
-}
-.instrument-alts {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  color: var(--mn-faint);
 }
 
 /* Piano keys */

@@ -189,10 +189,18 @@ export function InstrumentPanel({
   const ordered = (ps: Pick[]) => (b.mode === 'sequence' || b.mode === 'interval' ? ps : [...ps].sort((x, y) => x.midi - y.midi));
   const midis = ordered(picks).map((p) => p.midi);
   const chordNames = b.mode === 'chord' || b.mode === 'chords' || b.mode === 'notes' || b.mode === 'sequence' ? detectChords(midis) : [];
-  const storedSymbol = b.mode === 'chord' ? value : b.mode === 'chords' && slotIndex !== 'new' ? tokens[slotIndex].text : null;
+  // A notes field can also hold a chord symbol, e.g. after picking a name for
+  // what was played. Names like "C6" read as a single note there, so skip them.
+  const readsAsChord = (s: string) => /^\S+$/.test(s) && !!parseChord(s) && resolveNotes(s).length > 1;
+  const notesChord = b.mode === 'notes' && readsAsChord(value.trim()) ? value.trim() : null;
+  const storedSymbol =
+    b.mode === 'chord' ? value : b.mode === 'chords' && slotIndex !== 'new' ? tokens[slotIndex].text : notesChord;
   // Show the stored name while it still describes what's on the instrument.
   const shownSymbol =
     storedSymbol && parseChord(storedSymbol) && (chordNames.includes(storedSymbol) || !edited) ? storedSymbol : chordNames[0] ?? null;
+  // In a notes field, only name a chord once one has been chosen.
+  const readoutSymbol = b.mode === 'notes' ? (notesChord && chordNames.includes(notesChord) ? notesChord : null) : shownSymbol;
+  const choices = b.mode === 'notes' ? chordNames.filter(readsAsChord) : chordNames;
   const spelled = spellNotes(midis, shownSymbol ?? undefined);
   const spell = (m: number) => spelled[midis.indexOf(m)] ?? friendlyNote(m);
 
@@ -290,7 +298,7 @@ export function InstrumentPanel({
   };
 
   const chooseName = (symbol: string) => {
-    if (b.mode === 'chord') commit(chordValues(picks, symbol));
+    if (b.mode === 'chord' || b.mode === 'notes') commit(chordValues(picks, symbol));
     else if (b.mode === 'chords' && slotIndex === 'new') addChord(symbol);
     else if (b.mode === 'chords' && slotIndex !== 'new') {
       const t = tokens[slotIndex];
@@ -371,9 +379,9 @@ export function InstrumentPanel({
           <Readout
             mode={b.mode}
             midis={midis}
-            symbol={shownSymbol}
+            symbol={readoutSymbol}
             spell={spell}
-            chordNames={chordNames}
+            chordNames={choices}
             note={derivedNote}
             isNewSlot={slotIndex === 'new'}
             onChoose={chooseName}
@@ -404,6 +412,7 @@ function Readout({
   chordNames: string[];
   note?: string;
   isNewSlot: boolean;
+  /** Pick another name for the same notes */
   onChoose(symbol: string): void;
   onAdd(): void;
 }) {
@@ -411,6 +420,16 @@ function Readout({
   const pcs = midis.map((m) => displayNote(spell(m), { octave: false }));
   const empty = !midis.length;
   const hint = (text: string) => <span className="instrument-hint">{text}</span>;
+  /** Chord names that match what's played, as quiet one-click choices. */
+  const alts = (except: string | null) =>
+    chordNames
+      .filter((n) => n !== except)
+      .slice(0, 3)
+      .map((n) => (
+        <button key={n} type="button" className="chip-btn instrument-alt" title="Use this chord name" onClick={() => onChoose(n)}>
+          {prettyAccidentals(n)}
+        </button>
+      ));
   let body: React.ReactNode;
 
   if (note && empty) body = hint(note);
@@ -423,7 +442,14 @@ function Readout({
     ) : (
       <>
         <strong className="instrument-name">{names.join(' → ')}</strong>
-        {info ? hint(`${info.long} · ${info.semitones} semitone${info.semitones === 1 ? '' : 's'} apart`) : hint('Now pick the second note.')}
+        {info ? hint(info.long) : hint('Now pick the second note.')}
+      </>
+    );
+  } else if (mode === 'notes' && symbol && !empty) {
+    body = (
+      <>
+        <strong className="instrument-name">{prettyAccidentals(symbol)}</strong>
+        {alts(symbol)}
       </>
     );
   } else if (mode === 'notes' || mode === 'sequence') {
@@ -432,13 +458,12 @@ function Readout({
     ) : (
       <>
         <strong className="instrument-name">{names.join('  ')}</strong>
-        {chordNames.length > 0 && hint(`Together these make ${prettyAccidentals(chordNames[0])}`)}
+        {mode === 'notes' && alts(null)}
       </>
     );
   } else {
     // chord / chords
     const current = symbol;
-    const parsed = current ? parseChord(current) : null;
     body = empty ? (
       hint(mode === 'chords' && isNewSlot ? 'Play a chord, then add it to the progression.' : 'Play the notes of a chord and it will be named for you.')
     ) : !current ? (
@@ -449,17 +474,7 @@ function Readout({
     ) : (
       <>
         <strong className="instrument-name">{prettyAccidentals(current)}</strong>
-        {parsed && hint(`${parsed.name} · ${pcs.join(' ')}`)}
-        {chordNames.length > 1 && (
-          <span className="instrument-alts">
-            {mode === 'chords' && isNewSlot ? 'Add as' : 'Also called'}
-            {chordNames.slice(0, 4).map((n) => (
-              <button key={n} type="button" className={`chip-btn${n === current ? ' is-on' : ''}`} onClick={() => onChoose(n)}>
-                {prettyAccidentals(n)}
-              </button>
-            ))}
-          </span>
-        )}
+        {alts(current)}
       </>
     );
   }
@@ -666,10 +681,7 @@ function FretboardInput({
           );
         })}
       </svg>
-      <div className="ii-guitar-hint">
-        {tuning.id !== 'standard' && <span>{tuning.label} · </span>}
-        One note per string. Click a dot again to lift that finger.
-      </div>
+      {tuning.id !== 'standard' && <div className="ii-guitar-hint">{tuning.label}</div>}
     </div>
   );
 }
