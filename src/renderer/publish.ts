@@ -13,7 +13,9 @@ export async function buildHtml(markdown: string, fallbackTitle: string): Promis
     const data = await api.assetDataUrl(src);
     if (data) images.set(src, data);
   }
-  return renderDocument(markdown, { runtimeJs, runtimeCss, images, fallbackTitle });
+  // Publish with the theme the note is being read in.
+  const theme = document.documentElement.dataset.theme;
+  return renderDocument(markdown, { runtimeJs, runtimeCss, images, fallbackTitle, theme });
 }
 
 export async function exportNote(markdown: string, title: string): Promise<string | null> {

@@ -1,0 +1,52 @@
+/*
+ * Nord: the arctic, north-bluish palette by Arctic Ice Studio (nordtheme.com).
+ * Polar Night / Snow Storm neutrals with a Frost accent. Light-mode accents
+ * and the error red are deepened slightly from the reference palette so text
+ * meets WCAG AA. Set in a clean geometric sans.
+ */
+[data-theme='nord'] {
+  --mn-font-ui: var(--mn-stack-system);
+  --mn-font-body: var(--mn-stack-geometric);
+  --mn-font-heading: var(--mn-stack-geometric);
+  --mn-font-label: var(--mn-stack-geometric);
+  --mn-font-mono: var(--mn-stack-mono);
+  --mn-body-size: 17px;
+  --mn-body-leading: 1.65;
+  --mn-heading-weight: 600;
+  --mn-heading-tracking: -0.005em;
+
+  --mn-radius-lg: 12px;
+  --mn-radius: 8px;
+  --mn-radius-sm: 6px;
+  --mn-radius-xs: 4px;
+
+  --mn-bg: light-dark(#eceff4, #2e3440);
+  --mn-sidebar: light-dark(#e5e9f0, #2a2f3a);
+  --mn-surface: light-dark(#e5e9f0, #353b49);
+  --mn-card: light-dark(#f8f9fb, #3b4252);
+  --mn-popover: light-dark(#f8f9fb, #3b4252);
+  --mn-code-bg: light-dark(#e5e9f0, #353b49);
+
+  --mn-text: light-dark(#2e3440, #e5e9f0);
+  --mn-muted: light-dark(#4c566a, #a5aebf);
+  --mn-faint: light-dark(#7b88a1, #6d7a94);
+  --mn-border: light-dark(#d8dee9, #434c5e);
+  --mn-border-strong: light-dark(#c2cad8, #4c566a);
+
+  --mn-accent: light-dark(#486a96, #88c0d0);
+  --mn-accent-strong: light-dark(#3e5d85, #a3d3e0);
+  --mn-on-accent: light-dark(#ffffff, #2e3440);
+  --mn-danger: light-dark(#a5454f, #d9848b);
+
+  --mn-key-white: light-dark(#f8f9fb, #d8dee9);
+  --mn-key-white-edge: light-dark(#c2cad8, #4c566a);
+  --mn-key-black: light-dark(#2e3440, #242933);
+  --mn-shadow-color: #1c2029;
+
+  --mn-syntax-keyword: light-dark(#5e81ac, #81a1c1);
+  --mn-syntax-string: light-dark(#5f7f45, #a3be8c);
+  --mn-syntax-number: light-dark(#8a5f86, #b48ead);
+  --mn-syntax-function: light-dark(#3f7b8c, #88c0d0);
+  --mn-syntax-type: light-dark(#3c7d7b, #8fbcbb);
+  --mn-syntax-attr: light-dark(#b0613a, #d08770);
+}

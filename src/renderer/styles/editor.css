@@ -95,13 +95,13 @@
 .mn-codeblock-lang {
   border: none;
   background: transparent;
-  font-family: var(--mn-font);
+  font-family: var(--mn-font-ui);
   font-size: 11px;
   color: var(--mn-faint);
   text-align: right;
   width: 90px;
   padding: 2px 4px;
-  border-radius: 4px;
+  border-radius: var(--mn-radius-xs);
   outline: none;
 }
 .mn-codeblock-lang:focus,
@@ -149,11 +149,11 @@
   border: 1px solid var(--mn-border);
   background: var(--mn-card);
   color: var(--mn-muted);
-  border-radius: 7px;
+  border-radius: var(--mn-radius-xs);
   padding: 4px 8px;
   font-size: 12px;
   font-weight: 550;
-  font-family: var(--mn-font);
+  font-family: var(--mn-font-ui);
   box-shadow: var(--mn-shadow);
 }
 .mn-widget-edit svg {

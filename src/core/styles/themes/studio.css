@@ -1,0 +1,52 @@
+/*
+ * Studio: the default. Neutral, quiet, Apple-native.
+ * Near-white paper with a single saturated blue accent; system type throughout.
+ * Also the fallback on :root, so an unknown or missing data-theme still renders.
+ */
+:root,
+[data-theme='studio'] {
+  --mn-font-ui: var(--mn-stack-system);
+  --mn-font-body: var(--mn-stack-system);
+  --mn-font-heading: var(--mn-stack-system-display);
+  --mn-font-label: var(--mn-stack-rounded);
+  --mn-font-mono: var(--mn-stack-mono);
+  --mn-body-size: 17px;
+  --mn-body-leading: 1.68;
+  --mn-heading-weight: 650;
+  --mn-heading-tracking: -0.012em;
+
+  --mn-radius-lg: 16px;
+  --mn-radius: 12px;
+  --mn-radius-sm: 8px;
+  --mn-radius-xs: 7px;
+
+  --mn-bg: light-dark(#fcfcfb, #1c1c1e);
+  --mn-sidebar: light-dark(#f3f3f1, #19191b);
+  --mn-surface: light-dark(#f4f4f2, #242427);
+  --mn-card: light-dark(#ffffff, #232326);
+  --mn-popover: light-dark(#ffffff, #2a2a2d);
+  --mn-code-bg: light-dark(#f3f3f1, #262629);
+
+  --mn-text: light-dark(#1d1d1f, #ececee);
+  --mn-muted: light-dark(#6e6e73, #98989f);
+  --mn-faint: light-dark(#a1a1a6, #636366);
+  --mn-border: light-dark(#e6e6e3, #2f2f33);
+  --mn-border-strong: light-dark(#d2d2cf, #3d3d42);
+
+  --mn-accent: light-dark(#2a66f5, #6b97ff);
+  --mn-accent-strong: light-dark(#1f56e0, #8aadff);
+  --mn-on-accent: light-dark(#ffffff, #0d1530);
+  --mn-danger: light-dark(#d23535, #ff6961);
+
+  --mn-key-white: light-dark(#ffffff, #e9e9ec);
+  --mn-key-white-edge: light-dark(#cfcfcb, #5a5a60);
+  --mn-key-black: light-dark(#2a2a2d, #0f0f11);
+  --mn-shadow-color: #000000;
+
+  --mn-syntax-keyword: light-dark(#a23ad6, #d08cff);
+  --mn-syntax-string: light-dark(#1f8a4c, #6fd39a);
+  --mn-syntax-number: light-dark(#c25e00, #ffae5c);
+  --mn-syntax-function: light-dark(#2a66f5, #8aadff);
+  --mn-syntax-type: light-dark(#b5480f, #f29a5c);
+  --mn-syntax-attr: light-dark(#0a7d9b, #5cc8e6);
+}

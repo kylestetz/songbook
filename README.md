@@ -89,7 +89,8 @@ src/
     widgets/            The widget registry. Each widget = fields + defaults + render()
     publish/            Markdown → self-contained HTML (+ syntax highlighting)
     runtime/            Entry point inlined into published pages; hydrates widgets
-    styles/             Design tokens, document typography, widget styles
+    styles/             Design tokens, themes, document typography, widget styles
+    themes.ts           Theme registry and the list of tokens every theme must define
   editor/               ProseMirror editor: schema, markdown parser/serializer,
                         input rules, keymap, node views, slash menu
   renderer/             React app shell: sidebar, editor pane, widget forms, settings
@@ -103,6 +104,7 @@ How the parts fit together:
 - **WYSIWYG on ProseMirror.** The editor's schema mirrors that markdown dialect, and `prosemirror-markdown` converts between the two. Widgets are atom nodes, and their node views call the same `render()` functions that published pages use. Round-trip stability (markdown → editor → markdown) is covered by tests.
 - **Widgets are data-driven.** A `WidgetDefinition` (in `core/widgets/types.ts`) declares its directive name, its fields (which drive the insert/edit forms), its defaults, a `render(el, values, ctx)` function written in plain DOM/SVG, and a text `summary()`. To add a widget, write one definition and add it to `WIDGETS` in `core/widgets/index.ts`. The menu, forms, editor, serializer and publisher all pick it up from there. (Electron's menu reads a lightweight copy in `registry-meta.ts`, and a test keeps the two in sync.)
 - **Publishing.** `vite.runtime.config.mts` builds `core/runtime` into a single IIFE plus a stylesheet (about 27 KB gzipped). `core/publish` renders the note with widget placeholders that carry their values as JSON, then inlines the runtime, the styles and any images into a single HTML file.
+- **Theming.** Every color, typeface, radius and shadow comes from a CSS custom property. `core/styles/tokens.css` holds font stacks and *derived* tokens (accent tints, hover washes, shadows, key marks), computed from a small set of theme tokens. Each theme in `core/styles/themes/` sets those tokens once, light and dark together with `light-dark()`, scoped to `[data-theme='…']`. `data-color-scheme="light|dark"` pins the scheme; without it the OS decides. Both attributes work on any element, which is how the theme picker previews each theme. Components read semantic tokens only; a test fails on raw colors in component CSS or on a theme missing any token in `THEME_TOKENS`. To add a theme, add a stylesheet, import it in `theme.css` and register it in `core/themes.ts`. The chosen theme is an app preference (in `localStorage`) and is written into HTML exports.
 - **Storage.** Notes are `.md` files in a folder. A file is renamed to match its title (front-matter `title`, or else the first heading), and the folder is watched for outside edits. The renderer only talks to storage through `MusicNotesApi`. In the browser (`npm run web`) a `localStorage` implementation stands in for it.
 
 ## Roadmap ideas

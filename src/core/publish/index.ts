@@ -8,6 +8,7 @@ import { createMarkdownIt, splitFrontmatter, effectiveSettings, deriveTitle, typ
 import type { Directive } from '../markdown/directive';
 import { getWidget, valuesFromDirective, widgetSummary } from '../widgets';
 import { highlightToHtml, resolveLanguage } from './highlight';
+import { isThemeId } from '../themes';
 
 export { highlightToHtml, highlightRanges, resolveLanguage } from './highlight';
 
@@ -80,6 +81,8 @@ export interface DocumentOptions extends RenderOptions {
   runtimeCss: string;
   /** Fallback title when the document has none */
   fallbackTitle?: string;
+  /** Theme id to publish with (see core/themes). Readers' light/dark preference is still respected. */
+  theme?: string;
 }
 
 /** Render a complete, self-contained HTML page for a markdown document. */
@@ -92,8 +95,9 @@ export function renderDocument(markdown: string, opts: DocumentOptions): string 
   const safeJson = JSON.stringify(runtimeSettings).replace(/</g, '\\u003c');
   const safeJs = opts.runtimeJs.replace(/<\/script/gi, '<\\/script');
   const safeCss = opts.runtimeCss.replace(/<\/style/gi, '<\\/style');
+  const themeAttr = isThemeId(opts.theme) ? ` data-theme="${opts.theme}"` : '';
   return `<!doctype html>
-<html lang="en">
+<html lang="en"${themeAttr}>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
