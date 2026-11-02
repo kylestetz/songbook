@@ -1,4 +1,4 @@
-import { parseKey, parseProgression, prettyAccidentals, voiceLead } from '../theory';
+import { chordLabel, parseKey, parseProgression, prettyAccidentals, tokenize, voiceLead } from '../theory';
 import { chordSymbolEl } from './symbol';
 import { card, clickable, h, ICONS, playButton, soundFor } from './dom';
 import { CAPTION_FIELD, OCTAVE_OPTIONS, SOUND_FIELD, WIDGET_ICONS } from './common';
@@ -18,7 +18,7 @@ export const progressionWidget: WidgetDefinition = {
       type: 'text',
       required: true,
       placeholder: 'Dm7 G7 Cmaj7  or  ii7 V7 Imaj7',
-      help: 'Chord symbols or roman numerals (with a key), separated by spaces. "|" bar lines are ignored.',
+      help: 'Chord symbols or roman numerals (with a key), separated by spaces. Any notes work as a chord when written in brackets, with an optional name: Fm(add9)[F3 Ab3 G3]. "|" bar lines are ignored.',
       instrument: { mode: 'chords', octave: 'octave' },
     },
     { key: 'key', label: 'Key', type: 'key', help: 'Shows roman numerals and lets you write numerals like ii7 V7 I.' },
@@ -45,7 +45,7 @@ export const progressionWidget: WidgetDefinition = {
     SOUND_FIELD,
   ],
   defaults: { chords: 'Dm7 G7 Cmaj7', key: '', beats: '4', style: 'block', loop: '', octave: '3' },
-  summary: (v) => prettyAccidentals(v.chords ?? ''),
+  summary: (v) => tokenize(v.chords ?? '').map((t) => prettyAccidentals(chordLabel(t))).join(' '),
   render(el, values, ctx) {
     const octave = parseInt(values.octave || '3', 10);
     const steps = parseProgression(values.chords ?? '', values.key, octave);

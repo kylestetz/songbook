@@ -138,3 +138,39 @@ describe('playing notes to name chords', () => {
     expect(fitToStrings(m('C1'), std)).toBeNull();
   });
 });
+
+import { chordLabel, formatExplicitChord, guessChordNames, guitarVoicing as voicingFor, tokenize } from '../src/core/theory';
+
+describe('chords written as notes', () => {
+  const m = (...names: string[]) => names.map((n) => Note.midi(n)!);
+  it('keeps any notes as a chord, with an optional label', () => {
+    const c = parseChord('Fmadd9[F3 Ab3 G3]')!;
+    expect(c.explicit).toEqual(['F3', 'Ab3', 'G3']);
+    expect(c.root).toBe('F');
+    expect(voiceChord('Fmadd9[F3 Ab3 G3]', 5)).toEqual(['F3', 'G3', 'Ab3']);
+    expect(voiceChord('[F Ab G]', 3)).toEqual(['F3', 'Ab3', 'G4']);
+    expect(parseChord('Fm(add9)[F3 Ab3 G3]')?.root).toBe('F');
+    expect(parseChord('[X3 Y]')).toBeNull();
+    expect(chordLabel('Fm(add9)[F3 Ab3 G3]')).toBe('Fm(add9)');
+    expect(chordLabel('[F3 Ab3 G3]')).toBe('F Ab G');
+    expect(formatExplicitChord('Fm add9', ['F3', 'Ab3'])).toBe('Fmadd9[F3 Ab3]');
+  });
+  it('keeps bracketed notes together in chord lists', () => {
+    expect(tokenize('Dm7 Fmadd9[F3 Ab3 G3] | G7, [C E]')).toEqual(['Dm7', 'Fmadd9[F3 Ab3 G3]', 'G7', '[C E]']);
+    const steps = parseProgression('Dm7 Fmadd9[F3 Ab3 G3]', 'Fm');
+    expect(steps[1].symbol).toBe('Fmadd9[F3 Ab3 G3]');
+    expect(steps[1].notes).toEqual(['F3', 'G3', 'Ab3']);
+    expect(steps[1].roman).toBe('iadd9');
+  });
+  it('finds a guitar shape with exactly those notes', () => {
+    const v = voicingFor('[F3 Ab3 G3]')!;
+    const std = tuningFor('standard');
+    const sounding = v.frets.map((f, i) => (f === null ? null : (Note.midi(std.notes[i])! + f) % 12)).filter((x) => x !== null);
+    expect(new Set(sounding)).toEqual(new Set([5, 8, 7]));
+  });
+  it('guesses names for chords with the fifth left out', () => {
+    expect(guessChordNames(m('F3', 'Ab3', 'G3'))[0]).toBe('Fmadd9');
+    expect(guessChordNames(m('C3', 'E3', 'B3'))[0]).toBe('Cmaj7');
+    expect(guessChordNames(m('C4', 'E4', 'G4'))).toEqual([]);
+  });
+});

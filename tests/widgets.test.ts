@@ -47,3 +47,17 @@ describe('values <-> directive', () => {
     expect(directiveFromValues('note', v).attrs).toEqual({ future: 'yes' });
   });
 });
+
+describe('chords written as notes', () => {
+  it('render with their label and survive a round trip', () => {
+    const el = document.createElement('div');
+    renderWidget(el, 'progression', { chords: 'Dm7 Fm(add9)[F3 Ab3 G3]' }, ctx);
+    expect(el.querySelectorAll('.mn-prog-cell.is-invalid').length).toBe(0);
+    expect(el.textContent).toContain('Fm(add9)');
+    const g = document.createElement('div');
+    renderWidget(g, 'guitar', { chord: '[F3 Ab3 G3]' }, ctx);
+    expect(g.querySelector('.mn-error')).toBeNull();
+    const d = directiveFromValues('chord', { symbol: 'Fmadd9[F3 Ab3 G3]', octave: '3' });
+    expect(valuesFromDirective(d).symbol).toBe('Fmadd9[F3 Ab3 G3]');
+  });
+});

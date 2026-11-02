@@ -1,5 +1,6 @@
 import { Note } from '@tonaljs/tonal';
 import {
+  chordLabel,
   describeVoicing,
   displayNote,
   fretsToNotes,
@@ -54,7 +55,7 @@ export const guitarWidget: WidgetDefinition = {
     GUITAR_SOUND_FIELD,
   ],
   defaults: { chord: 'Am', frets: '', tuning: 'standard', labels: 'notes', sound: '' },
-  summary: (v) => `${prettyAccidentals(v.chord ?? '')} guitar chord${v.frets ? ` (${v.frets})` : ''}`,
+  summary: (v) => `${prettyAccidentals(chordLabel(v.chord ?? ''))} guitar chord${v.frets ? ` (${v.frets})` : ''}`,
   render(el, values, ctx) {
     const tuning = getTuning(values.tuning);
     let voicing: Voicing | null = null;

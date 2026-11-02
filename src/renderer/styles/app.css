@@ -1089,6 +1089,10 @@ textarea.input {
   font-size: 17px;
   font-weight: 650;
 }
+.instrument-label {
+  width: 150px;
+  align-self: center;
+}
 .instrument-name.is-muted {
   color: var(--mn-muted);
 }

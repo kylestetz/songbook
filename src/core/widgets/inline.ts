@@ -2,6 +2,7 @@
  * Inline widgets: small "pills" that sit inside a sentence and play on click.
  */
 import {
+  chordLabel,
   displayNote,
   intervalBetween,
   parseChord,
@@ -84,7 +85,7 @@ export const chordWidget: WidgetDefinition = {
     SOUND_FIELD,
   ],
   defaults: { symbol: 'C', octave: '3' },
-  summary: (v) => prettyAccidentals(v.symbol ?? ''),
+  summary: (v) => prettyAccidentals(chordLabel(v.symbol ?? '')),
   render(el, values, ctx) {
     const c = parseChord(values.symbol ?? '');
     const octave = parseInt(values.octave || '3', 10);
@@ -94,7 +95,7 @@ export const chordWidget: WidgetDefinition = {
       pill(
         'chord',
         content,
-        c ? `Play ${prettyAccidentals(values.symbol)}` : 'Unknown chord',
+        c ? `Play ${prettyAccidentals(chordLabel(values.symbol))}` : 'Unknown chord',
         () => playNotes(ctx, values, notes, { together: true, strum: 0.025 }),
         !c,
       ),

@@ -6,7 +6,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Note } from '@tonaljs/tonal';
 import {
+  chordLabel,
+  cleanChordLabel,
   detectChords,
+  formatExplicitChord,
+  guessChordNames,
+  parseExplicitChord,
   displayNote,
   fitToStrings,
   formatFrets,
@@ -22,6 +27,7 @@ import {
   parseProgression,
   prettyAccidentals,
   resolveNotes,
+  tokenSpans,
   voiceChord,
   type Frets,
   type Tuning,
@@ -70,9 +76,7 @@ const midiOf = (n: string) => Note.midi(n) ?? null;
 const notNull = <T,>(x: T | null | undefined): x is T => x !== null && x !== undefined;
 
 /** Tokens of a chord list, with their positions so edits keep bar lines and spacing. */
-function chordTokens(text: string) {
-  return [...text.matchAll(/[^\s,|]+/g)].map((m) => ({ text: m[0], start: m.index!, end: m.index! + m[0].length }));
-}
+const chordTokens = tokenSpans;
 
 function defaultOctave(b: InstrumentBinding, values: WidgetValues) {
   const fallback = b.mode === 'chord' || b.mode === 'chords' ? 3 : 4;
@@ -152,6 +156,8 @@ export function InstrumentPanel({
   const [slot, setSlot] = useState<number | 'new'>('new');
   const [picks, setPicks] = useState<Pick[]>([]);
   const [derivedNote, setDerivedNote] = useState<string | undefined>();
+  /** A name typed for notes that don't have a standard one; null = use the best guess */
+  const [labelDraft, setLabelDraft] = useState<string | null>(null);
   /** True once notes have been played here; false while showing the stored value */
   const [edited, setEdited] = useState(false);
   const value = values[field.key] ?? '';
@@ -179,6 +185,12 @@ export function InstrumentPanel({
     setPicks(d.picks);
     setDerivedNote(d.note);
     setEdited(false);
+    // Keep a name that was chosen for these notes, rather than re-guessing it.
+    const stored =
+      b.mode === 'chord' ? value : b.mode === 'chords' && slotIndex !== 'new' ? tokens[slotIndex]?.text ?? '' : '';
+    const e = parseExplicitChord(stored);
+    const guess = e ? guessChordNames(voiceChord(stored).map(midiOf).filter(notNull))[0] ?? '' : '';
+    setLabelDraft(e && e.label !== guess ? e.label : null);
   }, [sourceKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const commit = (next: WidgetValues) => {
@@ -188,7 +200,30 @@ export function InstrumentPanel({
 
   const ordered = (ps: Pick[]) => (b.mode === 'sequence' || b.mode === 'interval' ? ps : [...ps].sort((x, y) => x.midi - y.midi));
   const midis = ordered(picks).map((p) => p.midi);
-  const chordNames = b.mode === 'chord' || b.mode === 'chords' || b.mode === 'notes' || b.mode === 'sequence' ? detectChords(midis) : [];
+  const chordMode = b.mode === 'chord' || b.mode === 'chords';
+  const chordNames = chordMode || b.mode === 'notes' || b.mode === 'sequence' ? detectChords(midis) : [];
+  /**
+   * Notes without a standard chord name are kept exactly as played, labelled
+   * with the typed name or a best guess: "Fmadd9[F3 Ab3 G3]".
+   */
+  const asNotes = (ms: number[]): string | null => {
+    if (!ms.length) return null;
+    const sorted = [...ms].sort((x, y) => x - y);
+    const guess = guessChordNames(sorted)[0] ?? '';
+    const label = labelDraft ?? guess;
+    return formatExplicitChord(label, spellNotes(sorted, parseChord(label) ? label : guess || undefined));
+  };
+  /** The chord symbol for some played notes: a name when there is one, otherwise the notes. */
+  const symbolFor = (ms: number[], prefer?: string) => {
+    const names = detectChords(ms);
+    if (names.length) return prefer && names.includes(prefer) ? prefer : names[0];
+    return asNotes(ms);
+  };
+  const sameNotes = (symbol: string) => {
+    const ms = voiceChord(symbol).map(midiOf).filter(notNull).sort((x, y) => x - y);
+    const played = [...new Set(midis)].sort((x, y) => x - y);
+    return ms.length === played.length && ms.every((m, i) => m === played[i]);
+  };
   // A notes field can also hold a chord symbol, e.g. after picking a name for
   // what was played. Names like "C6" read as a single note there, so skip them.
   const readsAsChord = (s: string) => /^\S+$/.test(s) && !!parseChord(s) && resolveNotes(s).length > 1;
@@ -196,12 +231,17 @@ export function InstrumentPanel({
   const storedSymbol =
     b.mode === 'chord' ? value : b.mode === 'chords' && slotIndex !== 'new' ? tokens[slotIndex].text : notesChord;
   // Show the stored name while it still describes what's on the instrument.
-  const shownSymbol =
-    storedSymbol && parseChord(storedSymbol) && (chordNames.includes(storedSymbol) || !edited) ? storedSymbol : chordNames[0] ?? null;
+  const storedFits =
+    !!storedSymbol &&
+    !!parseChord(storedSymbol) &&
+    (chordNames.includes(storedSymbol) || !edited || (!!parseExplicitChord(storedSymbol) && sameNotes(storedSymbol)));
+  const shownSymbol = storedFits ? storedSymbol : chordNames[0] ?? (chordMode ? asNotes(midis) : null);
+  const shownExplicit = shownSymbol ? parseExplicitChord(shownSymbol) : null;
+  const guesses = chordMode && shownExplicit ? guessChordNames(midis) : [];
   // In a notes field, only name a chord once one has been chosen.
   const readoutSymbol = b.mode === 'notes' ? (notesChord && chordNames.includes(notesChord) ? notesChord : null) : shownSymbol;
   const choices = b.mode === 'notes' ? chordNames.filter(readsAsChord) : chordNames;
-  const spelled = spellNotes(midis, shownSymbol ?? undefined);
+  const spelled = spellNotes(midis, (shownExplicit ? (parseChord(shownExplicit.label) ? shownExplicit.label : guesses[0]) : shownSymbol) ?? undefined);
   const spell = (m: number) => spelled[midis.indexOf(m)] ?? friendlyNote(m);
 
   const fretsOf = (ps: Pick[]): Frets => tuning.notes.map((_, s) => {
@@ -244,16 +284,16 @@ export function InstrumentPanel({
         commit({ ...values, [field.key]: list.join(' ') });
         return;
       case 'chord': {
-        const names = detectChords(ps.map((p) => p.midi));
-        if (!names.length) return;
-        commit(chordValues(ps, names.includes(value) ? value : names[0]));
+        const symbol = symbolFor(ps.map((p) => p.midi), value);
+        if (!symbol) return;
+        commit(chordValues(ps, symbol));
         return;
       }
       case 'chords': {
-        const names = detectChords(ps.map((p) => p.midi));
-        if (!names.length || slotIndex === 'new') return;
+        const symbol = symbolFor(ps.map((p) => p.midi));
+        if (!symbol || slotIndex === 'new') return;
         const t = tokens[slotIndex];
-        commit({ ...values, [field.key]: value.slice(0, t.start) + names[0] + value.slice(t.end) });
+        commit({ ...values, [field.key]: value.slice(0, t.start) + symbol + value.slice(t.end) });
         return;
       }
     }
@@ -306,12 +346,23 @@ export function InstrumentPanel({
     }
   };
 
-  const addChord = (symbol = chordNames[0]) => {
+  /** Name notes that are kept as played. The notes stay the same. */
+  const setLabel = (raw: string) => {
+    const label = cleanChordLabel(raw);
+    setLabelDraft(label);
+    if (!shownExplicit) return;
+    const symbol = formatExplicitChord(label, shownExplicit.notes);
+    if (b.mode === 'chords' && slotIndex === 'new') return;
+    chooseName(symbol);
+  };
+
+  const addChord = (symbol = shownSymbol) => {
     if (!symbol) return;
     const trimmed = value.replace(/\s+$/, '');
     commit({ ...values, [field.key]: `${trimmed}${trimmed ? ' ' : ''}${symbol}` });
     setPicks([]);
     setEdited(false);
+    setLabelDraft(null);
   };
 
   const removeChord = (i: number) => {
@@ -349,9 +400,9 @@ export function InstrumentPanel({
           {tokens.map((t, i) => (
             <span key={`${i}-${t.text}`} className={`instrument-slot${slotIndex === i ? ' is-on' : ''}`}>
               <button type="button" onClick={() => setSlot(i)} title="Edit this chord">
-                {prettyAccidentals(t.text)}
+                {prettyAccidentals(chordLabel(t.text))}
               </button>
-              <button type="button" className="instrument-slot-remove" onClick={() => removeChord(i)} aria-label={`Remove ${t.text}`}>
+              <button type="button" className="instrument-slot-remove" onClick={() => removeChord(i)} aria-label={`Remove ${chordLabel(t.text)}`}>
                 ×
               </button>
             </span>
@@ -382,9 +433,12 @@ export function InstrumentPanel({
             symbol={readoutSymbol}
             spell={spell}
             chordNames={choices}
+            asNotes={shownExplicit}
+            guesses={guesses}
             note={derivedNote}
             isNewSlot={slotIndex === 'new'}
             onChoose={chooseName}
+            onLabel={setLabel}
             onAdd={addChord}
           />
         </>
@@ -399,9 +453,12 @@ function Readout({
   symbol,
   spell,
   chordNames,
+  asNotes,
+  guesses,
   note,
   isNewSlot,
   onChoose,
+  onLabel,
   onAdd,
 }: {
   mode: InstrumentBinding['mode'];
@@ -410,10 +467,16 @@ function Readout({
   symbol: string | null;
   spell(midi: number): string;
   chordNames: string[];
+  /** Set when the chord is kept as the notes played, with an optional label */
+  asNotes: { label: string; notes: string[] } | null;
+  /** Likely names for notes kept as played */
+  guesses: string[];
   note?: string;
   isNewSlot: boolean;
   /** Pick another name for the same notes */
   onChoose(symbol: string): void;
+  /** Name notes kept as played */
+  onLabel(label: string): void;
   onAdd(): void;
 }) {
   const names = midis.map((m) => displayNote(spell(m)));
@@ -466,10 +529,26 @@ function Readout({
     const current = symbol;
     body = empty ? (
       hint(mode === 'chords' && isNewSlot ? 'Play a chord, then add it to the progression.' : 'Play the notes of a chord and it will be named for you.')
-    ) : !current ? (
+    ) : asNotes || !current ? (
       <>
-        <strong className="instrument-name is-muted">{pcs.join(' ')}</strong>
-        {hint(midis.length < 3 && new Set(pcs).size < 3 ? 'Add another note to make a chord.' : "That's not a chord I can name. Try adding or removing a note.")}
+        <strong className="instrument-name">{pcs.join(' ')}</strong>
+        <input
+          className="input input-sm instrument-label"
+          value={asNotes?.label ?? ''}
+          placeholder="Name (optional)"
+          aria-label="Chord name"
+          title="What to call these notes. The notes stay exactly as played."
+          spellCheck={false}
+          onChange={(e) => onLabel(e.target.value)}
+        />
+        {guesses
+          .filter((g) => g !== asNotes?.label)
+          .slice(0, 3)
+          .map((g) => (
+            <button key={g} type="button" className="chip-btn instrument-alt" title="Call it this" onClick={() => onLabel(g)}>
+              {prettyAccidentals(g)}
+            </button>
+          ))}
       </>
     ) : (
       <>
@@ -483,8 +562,8 @@ function Readout({
     <div className="instrument-readout">
       <div className="instrument-readout-main">{body}</div>
       {mode === 'chords' && isNewSlot && (
-        <button type="button" className="button button-small button-primary" onClick={() => onAdd()} disabled={!chordNames.length}>
-          Add {chordNames[0] ? prettyAccidentals(chordNames[0]) : 'chord'}
+        <button type="button" className="button button-small button-primary" onClick={() => onAdd()} disabled={!symbol}>
+          Add {symbol ? prettyAccidentals(chordLabel(symbol)) : 'chord'}
         </button>
       )}
     </div>
