@@ -24,12 +24,18 @@ export interface ParsedChord {
   explicit?: string[];
   /** The display label of a chord written as notes ("" when unnamed) */
   label?: string;
+  /** The guitar fingering written with the notes, e.g. "x02010" */
+  frets?: string;
 }
 
 /**
  * A chord can be written as the exact notes that sound, with an optional
  * label in front: "Fm(add9)[F3 Ab3 G3]" or just "[F Ab G]". This lets any set
  * of notes be used as a chord, whether or not it has a standard name.
+ *
+ * A guitar voicing also records where it was played, since the same notes can
+ * sit on different strings: "Am7[A2 E3 G3 C4 E4 @x02010]". The notes are then
+ * written in string order, low string first.
  */
 const EXPLICIT_RE = /^([^\s[\]]*)\[([^\]]*)\]$/;
 
@@ -37,19 +43,23 @@ export interface ExplicitChord {
   label: string;
   /** Notes as written, e.g. ["F3", "Ab3", "G3"] */
   notes: string[];
+  /** Guitar fingering, low string first, e.g. "x02010" */
+  frets?: string;
 }
 
 export function parseExplicitChord(input: string): ExplicitChord | null {
   const m = EXPLICIT_RE.exec(input.trim());
   if (!m) return null;
-  const parsed = m[2].split(/[\s,]+/).filter(Boolean).map(parseNote);
+  const parts = m[2].split(/[\s,]+/).filter(Boolean);
+  const frets = parts.find((p) => p.startsWith('@'))?.slice(1);
+  const parsed = parts.filter((p) => !p.startsWith('@')).map(parseNote);
   if (!parsed.length || parsed.some((n) => !n)) return null;
-  return { label: m[1], notes: parsed.map((n) => n!.name) };
+  return { label: m[1], notes: parsed.map((n) => n!.name), ...(frets ? { frets } : {}) };
 }
 
-/** Write notes (and an optional label) as a chord: "Fmadd9[F3 Ab3 G3]". */
-export function formatExplicitChord(label: string, notes: string[]): string {
-  return `${cleanChordLabel(label)}[${notes.join(' ')}]`;
+/** Write notes (and an optional label and fingering) as a chord: "Fmadd9[F3 Ab3 G3]". */
+export function formatExplicitChord(label: string, notes: string[], frets?: string): string {
+  return `${cleanChordLabel(label)}[${notes.join(' ')}${frets ? ` @${frets}` : ''}]`;
 }
 
 /** Labels can't hold spaces or brackets, since they live inside chord lists. */
@@ -79,7 +89,7 @@ function parseExplicit(e: ExplicitChord): ParsedChord {
     pcs.find((x) => Note.chroma(x) === Note.chroma(p))!,
   );
   return {
-    symbol: formatExplicitChord(e.label, e.notes),
+    symbol: formatExplicitChord(e.label, e.notes, e.frets),
     root,
     suffix: named && named.root === root ? named.suffix : '',
     bass,
@@ -89,6 +99,7 @@ function parseExplicit(e: ExplicitChord): ParsedChord {
     quality: named?.quality ?? '',
     explicit: e.notes,
     label: e.label,
+    frets: e.frets,
   };
 }
 
@@ -146,7 +157,11 @@ export function isChord(input: string): boolean {
 export function voiceChord(input: string, octave = 3): string[] {
   const c = parseChord(input);
   if (!c) return [];
-  if (c.explicit) return ascendingOctaves(c.explicit, octave).sort((a, b) => Note.midi(a)! - Note.midi(b)!);
+  if (c.explicit) {
+    const notes = ascendingOctaves(c.explicit, octave);
+    // A guitar voicing keeps its string order, so it strums and arpeggiates as played.
+    return c.frets ? notes : notes.sort((a, b) => Note.midi(a)! - Note.midi(b)!);
+  }
   const root = `${c.root}${octave}`;
   const notes = c.intervals.map((ivl) => Note.transpose(root, ivl));
   if (c.bass) {

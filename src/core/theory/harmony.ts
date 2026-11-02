@@ -114,6 +114,8 @@ export interface ProgressionStep {
   roman: string | null;
   /** Voiced notes for playback */
   notes: string[];
+  /** Written as exact notes, so playback must not revoice it */
+  exact: boolean;
 }
 
 /**
@@ -134,21 +136,25 @@ export function parseProgression(text: string, keyInput?: string, octave = 3): P
       symbol = romanToChord(input, key);
     }
     const roman = symbol && key ? chordToRoman(symbol, key) : null;
-    return { input, symbol, roman, notes: symbol ? voiceChord(symbol, octave) : [] };
+    return { input, symbol, roman, notes: symbol ? voiceChord(symbol, octave) : [], exact: !!(symbol && parseChord(symbol)?.explicit) };
   });
 }
 
-/** Smooth voice-leading: rearrange each chord's notes to stay close to the previous chord. */
-export function voiceLead(chords: string[][]): string[][] {
+/**
+ * Smooth voice-leading: rearrange each chord's notes to stay close to the
+ * previous chord. Chords marked `exact` sound as written, and the next chord
+ * leads on from them.
+ */
+export function voiceLead(chords: string[][], exact: boolean[] = []): string[][] {
   const out: string[][] = [];
   let prevCenter: number | null = null;
-  for (const notes of chords) {
+  for (const [i, notes] of chords.entries()) {
     if (!notes.length) {
       out.push(notes);
       continue;
     }
     const midis = notes.map((n) => Note.midi(n)!).filter((m) => m != null);
-    if (prevCenter === null) {
+    if (prevCenter === null || exact[i]) {
       out.push(notes);
       prevCenter = avg(midis);
       continue;

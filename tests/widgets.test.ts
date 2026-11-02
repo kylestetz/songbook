@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { WIDGETS, directiveFromValues, renderWidget, valuesFromDirective } from '../src/core/widgets';
 import { WIDGETS as META } from '../src/core/widgets/registry-meta';
 import { AudioEngine } from '../src/core/audio';
+import { parseDirectiveAt, serializeDirective } from '../src/core/markdown/directive';
 
 const ctx = { audio: new AudioEngine(), settings: () => ({ sound: 'piano', tempo: 96 }) };
 
@@ -59,5 +60,11 @@ describe('chords written as notes', () => {
     expect(g.querySelector('.mn-error')).toBeNull();
     const d = directiveFromValues('chord', { symbol: 'Fmadd9[F3 Ab3 G3]', octave: '3' });
     expect(valuesFromDirective(d).symbol).toBe('Fmadd9[F3 Ab3 G3]');
+  });
+  it('survive a markdown round trip with their fingering', () => {
+    const chords = 'Am7[A2 E3 G3 C4 E4 @x02010] | C#m7[C#3 G#3 B3 E4 @x-4-6-4-5-x]';
+    const src = `${serializeDirective('block', directiveFromValues('progression', { chords }))}\n`;
+    const parsed = parseDirectiveAt(src, 2)!.directive;
+    expect(valuesFromDirective(parsed).chords).toBe(chords);
   });
 });

@@ -101,6 +101,11 @@ export function guessChordNames(midis: number[]): string[] {
   return out.map((x) => x.s);
 }
 
+/** The most likely name for some notes, or "" when nothing fits. */
+export function bestChordName(midis: number[]): string {
+  return detectChords(midis)[0] ?? guessChordNames(midis)[0] ?? '';
+}
+
 /**
  * Name notes the way they'd be written for a chord: the G♯ in E major, the
  * A♭ in F minor. Falls back to chart-friendly spellings.

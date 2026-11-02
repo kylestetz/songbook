@@ -1,5 +1,6 @@
 import { Note } from '@tonaljs/tonal';
-import { chordPitchClasses, parseChord } from './chord';
+import { chordPitchClasses, parseChord, voiceChord } from './chord';
+import { fitToStrings } from './detect';
 
 /** A fret per string, low string first. null = muted, 0 = open. */
 export type Frets = (number | null)[];
@@ -147,7 +148,12 @@ function normalizeKey(symbol: string): string {
 export function guitarVoicing(symbol: string, tuning: Tuning = TUNINGS[0]): Voicing | null {
   const chordAsNotes = parseChord(symbol);
   if (chordAsNotes?.explicit) {
-    // Exactly these notes: the lowest is the bass, and none may be dropped.
+    // The fingering it was played with, or else these exact pitches on the neck.
+    const written = writtenFrets(symbol, tuning);
+    if (written) return describeVoicing(written);
+    const fitted = fitToStrings(voiceChord(symbol).map((n) => Note.midi(n)!), tuning);
+    if (fitted) return describeVoicing(fitted);
+    // Otherwise the same notes in any octave: the lowest is the bass, and none may be dropped.
     const pcs = chordPitchClasses(chordAsNotes);
     const best = searchVoicing(pcs, pcs[0], tuning, false);
     return best ? describeVoicing(best) : null;
@@ -165,6 +171,19 @@ export function guitarVoicing(symbol: string, tuning: Tuning = TUNINGS[0]): Voic
   }
   const best = searchVoicing(chordPitchClasses(chord), chord.bass ?? chord.root, tuning);
   return best ? describeVoicing(best) : null;
+}
+
+/**
+ * The fingering written with a chord ("Am7[A2 E3 G3 C4 E4 @x02010]"), if it
+ * really plays those notes in this tuning. The notes win over a stale fingering.
+ */
+export function writtenFrets(symbol: string, tuning: Tuning = TUNINGS[0]): Frets | null {
+  const c = parseChord(symbol);
+  const frets = c?.frets ? parseFrets(c.frets, tuning.notes.length) : null;
+  if (!frets) return null;
+  const low = (ms: number[]) => [...ms].sort((a, b) => a - b).join();
+  const played = frets.flatMap((f, i) => (f === null ? [] : [Note.midi(tuning.notes[i])! + f]));
+  return low(played) === low(voiceChord(symbol).map((n) => Note.midi(n)!)) ? frets : null;
 }
 
 export function describeVoicing(frets: Frets): Voicing {

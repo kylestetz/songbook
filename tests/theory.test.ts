@@ -139,7 +139,7 @@ describe('playing notes to name chords', () => {
   });
 });
 
-import { chordLabel, formatExplicitChord, guessChordNames, guitarVoicing as voicingFor, tokenize } from '../src/core/theory';
+import { chordLabel, formatExplicitChord, guessChordNames, guitarVoicing as voicingFor, tokenize, voiceLead } from '../src/core/theory';
 
 describe('chords written as notes', () => {
   const m = (...names: string[]) => names.map((n) => Note.midi(n)!);
@@ -172,5 +172,48 @@ describe('chords written as notes', () => {
     expect(guessChordNames(m('F3', 'Ab3', 'G3'))[0]).toBe('Fmadd9');
     expect(guessChordNames(m('C3', 'E3', 'B3'))[0]).toBe('Cmaj7');
     expect(guessChordNames(m('C4', 'E4', 'G4'))).toEqual([]);
+  });
+});
+
+describe('exact voicings', () => {
+  const am7 = 'Am7[A2 E3 G3 C4 E4 @x02010]';
+  it('keeps a fingering alongside the notes', () => {
+    const c = parseChord(am7)!;
+    expect(c.frets).toBe('x02010');
+    expect(c.symbol).toBe(am7);
+    expect(formatExplicitChord('Am7', ['A2', 'E3', 'G3', 'C4', 'E4'], 'x02010')).toBe(am7);
+    expect(tokenize(`Dm7 | ${am7} G7`)).toEqual(['Dm7', am7, 'G7']);
+    expect(voicingFor(am7)!.frets).toEqual([null, 0, 2, 0, 1, 0]);
+  });
+  it('tells apart the same notes on different strings', () => {
+    // E4 on the open high string, or at the 5th fret of the B string
+    expect(voicingFor('[A2 E4 @x0xxx0]')!.frets).toEqual([null, 0, null, null, null, 0]);
+    expect(voicingFor('[A2 E4 @x0xx5x]')!.frets).toEqual([null, 0, null, null, 5, null]);
+  });
+  it('keeps doubled notes and string order', () => {
+    // A voicing whose strings don't ascend in pitch: B string 9 (G#4) above open E4
+    expect(voiceChord('E[E2 G#4 E4 @0xxx90]')).toEqual(['E2', 'G#4', 'E4']);
+    // The same E4 on two strings
+    expect(voiceChord('[E4 E4 @xxxx50]')).toEqual(['E4', 'E4']);
+  });
+  it('ignores a fingering that does not play the notes', () => {
+    expect(voicingFor('[A2 E3 @x03xxx]')!.frets).toEqual([null, 0, 2, null, null, null]);
+  });
+  it('places notes without a fingering at their written octave', () => {
+    const frets = voicingFor('[E4 G4 C5]')!.frets;
+    const std = tuningFor('standard');
+    const played = frets.flatMap((f, i) => (f === null ? [] : [Note.midi(std.notes[i])! + f]));
+    expect(played).toEqual([Note.midi('E4'), Note.midi('G4'), Note.midi('C5')]);
+  });
+  it('is not revoiced for playback', () => {
+    const steps = parseProgression(`Dm7 ${am7} [C5 E5 G5] G7`);
+    expect(steps.map((s) => s.exact)).toEqual([false, true, true, false]);
+    const voiced = voiceLead(steps.map((s) => s.notes), steps.map((s) => s.exact));
+    expect(voiced[1]).toEqual(['A2', 'E3', 'G3', 'C4', 'E4']);
+    expect(voiced[2]).toEqual(['C5', 'E5', 'G5']);
+  });
+  it('does not change the name with the notes', () => {
+    expect(parseProgression('Whatever[A2 E3 G3 C4 E4 @x02010]')[0].notes).toEqual(['A2', 'E3', 'G3', 'C4', 'E4']);
+    expect(chordLabel('Whatever[A2 E3 @x02xxx]')).toBe('Whatever');
   });
 });

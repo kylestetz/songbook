@@ -18,7 +18,7 @@ export const progressionWidget: WidgetDefinition = {
       type: 'text',
       required: true,
       placeholder: 'Dm7 G7 Cmaj7  or  ii7 V7 Imaj7',
-      help: 'Chord symbols or roman numerals (with a key), separated by spaces. Any notes work as a chord when written in brackets, with an optional name: Fm(add9)[F3 Ab3 G3]. "|" bar lines are ignored.',
+      help: 'Chord symbols or roman numerals (with a key), separated by spaces. Brackets hold an exact voicing, with an optional name in front and an optional guitar fingering: Am7[A2 E3 G3 C4 E4 @x02010]. "|" bar lines are ignored.',
       instrument: { mode: 'chords', octave: 'octave' },
     },
     { key: 'key', label: 'Key', type: 'key', help: 'Shows roman numerals and lets you write numerals like ii7 V7 I.' },
@@ -50,7 +50,7 @@ export const progressionWidget: WidgetDefinition = {
     const octave = parseInt(values.octave || '3', 10);
     const steps = parseProgression(values.chords ?? '', values.key, octave);
     const key = parseKey(values.key);
-    const voiced = voiceLead(steps.map((s) => s.notes));
+    const voiced = voiceLead(steps.map((s) => s.notes), steps.map((s) => s.exact));
     const instrument = () => soundFor(values, ctx);
     const style = values.style || 'block';
     let loop = values.loop === 'true';
