@@ -18,7 +18,7 @@ import { CAPTION_FIELD, SOUND_FIELD, WIDGET_ICONS } from './common';
 const GUITAR_SOUND_FIELD = {
   ...SOUND_FIELD,
   options: [
-    { value: '', label: 'Nylon guitar' },
+    { value: '', label: 'Clean guitar' },
     ...SOUND_FIELD.options!.filter((o) => o.value && o.value !== 'guitar'),
     { value: 'document', label: 'Document default' },
   ],
