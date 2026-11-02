@@ -145,6 +145,13 @@ function normalizeKey(symbol: string): string {
 
 /** Find a playable voicing for a chord symbol. */
 export function guitarVoicing(symbol: string, tuning: Tuning = TUNINGS[0]): Voicing | null {
+  const chordAsNotes = parseChord(symbol);
+  if (chordAsNotes?.explicit) {
+    // Exactly these notes: the lowest is the bass, and none may be dropped.
+    const pcs = chordPitchClasses(chordAsNotes);
+    const best = searchVoicing(pcs, pcs[0], tuning, false);
+    return best ? describeVoicing(best) : null;
+  }
   const key = normalizeKey(symbol);
   if (tuning.id === 'standard' && OPEN_SHAPES[key]) {
     return describeVoicing(parseFrets(OPEN_SHAPES[key])!);
@@ -184,13 +191,13 @@ export function describeVoicing(frets: Frets): Voicing {
  * chord tone within a 4-fret window; the lowest sounding note must be the bass;
  * every chord tone (except possibly the 5th) must be present.
  */
-function searchVoicing(pcs: string[], bass: string, tuning: Tuning): Frets | null {
+function searchVoicing(pcs: string[], bass: string, tuning: Tuning, dropFifth = true): Frets | null {
   const chromas = pcs.map((n) => Note.chroma(n)!);
   const bassChroma = Note.chroma(bass)!;
   const required = new Set(chromas);
   // Allow dropping the 5th on dense chords
   const optional = new Set<number>();
-  if (chromas.length >= 4) {
+  if (dropFifth && chromas.length >= 4) {
     const root = Note.chroma(pcs[0])!;
     optional.add((root + 7) % 12);
   }

@@ -190,8 +190,13 @@ export function degreeLabel(interval: string): string {
 
 /** Split a free-form list of notes/chords: "C4 E4, G4 | B4" -> ["C4","E4","G4","B4"] */
 export function tokenize(input: string): string[] {
-  return input
-    .split(/[\s,|]+/)
-    .map((t) => t.trim())
-    .filter(Boolean);
+  return tokenSpans(input).map((t) => t.text);
+}
+
+/**
+ * Tokens with their positions. A bracketed group of notes, as in a chord
+ * written as notes ("Fmadd9[F3 Ab3 G3]"), stays one token.
+ */
+export function tokenSpans(input: string): { text: string; start: number; end: number }[] {
+  return [...input.matchAll(/[^\s,|[\]]*\[[^\]]*\]|[^\s,|]+/g)].map((m) => ({ text: m[0], start: m.index!, end: m.index! + m[0].length }));
 }

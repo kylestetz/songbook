@@ -2,7 +2,7 @@
  * Helpers for "play it to write it" input: naming chords from notes picked on
  * an instrument, and placing notes on guitar strings.
  */
-import { Chord, Note } from '@tonaljs/tonal';
+import { Chord, ChordType, Note } from '@tonaljs/tonal';
 import { CHORD_SUFFIXES, chordPitchClasses, parseChord } from './chord';
 import type { Frets, Tuning } from './guitar';
 
@@ -59,6 +59,46 @@ export function detectChords(midis: number[]): string[] {
   // Hide exotic readings (like "G#m#5/E" for an E chord) when a familiar name fits.
   const familiar = scored.filter((x) => x.score > 0);
   return (familiar.length ? familiar : scored).map((x) => x.s);
+}
+
+/**
+ * Suggest names for notes that don't spell out a whole chord, using music
+ * theory to fill the gap: a chord with its fifth left out is still that chord
+ * (F A♭ G is Fm(add9) without the C). Most likely first; the bass is preferred
+ * as the root, and other roots are written as slash chords. These are labels
+ * only: the notes themselves are what should sound.
+ */
+export function guessChordNames(midis: number[]): string[] {
+  const sorted = [...new Set(midis)].sort((a, b) => a - b);
+  const pcs: string[] = [];
+  for (const m of sorted) {
+    const pc = friendlyPitchClass(m);
+    if (!pcs.includes(pc)) pcs.push(pc);
+  }
+  if (pcs.length < 3) return [];
+  const exact = new Set(detectChords(midis));
+  const out: { s: string; score: number }[] = [];
+  pcs.forEach((root, ri) => {
+    const rc = Note.chroma(root)!;
+    const played = new Set(pcs.map((p) => (Note.chroma(p)! - rc + 12) % 12));
+    for (const t of ChordType.all()) {
+      const tones = [...t.chroma].map((c, i) => (c === '1' ? i : -1)).filter((i) => i >= 0);
+      if (![...played].every((i) => tones.includes(i))) continue;
+      const missing = tones.filter((i) => !played.has(i));
+      // Only the perfect fifth can go unplayed and still leave the chord clear.
+      if (missing.length !== 1 || missing[0] !== 7) continue;
+      const alias = t.aliases.find((a) => COMMON.has(a)) ?? (t.aliases.includes('M') ? '' : t.aliases[0]);
+      if (alias === undefined) continue;
+      const s = `${root}${alias}${ri ? `/${pcs[0]}` : ''}`;
+      if (exact.has(s) || !parseChord(s) || out.some((x) => x.s === s)) continue;
+      let score = -tones.length;
+      if (COMMON.has(alias)) score += 10;
+      if (ri) score -= 3;
+      out.push({ s, score });
+    }
+  });
+  out.sort((a, b) => b.score - a.score);
+  return out.map((x) => x.s);
 }
 
 /**
