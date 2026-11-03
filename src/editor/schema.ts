@@ -106,6 +106,46 @@ const nodes: Record<string, NodeSpec> = {
     ],
   },
 
+  /**
+   * A GFM pipe table. Markdown tables have exactly one header row, so the first
+   * row is the header (styled as such) and there's no separate header cell type.
+   * Column alignment lives on every cell of the column and is kept in sync with
+   * the header row by tableNormalizePlugin.
+   */
+  table: {
+    content: 'table_row+',
+    group: 'block',
+    tableRole: 'table',
+    isolating: true,
+    parseDOM: [{ tag: 'table' }],
+    toDOM: () => ['table', ['tbody', 0]],
+  },
+
+  table_row: {
+    content: 'table_cell+',
+    tableRole: 'row',
+    parseDOM: [{ tag: 'tr' }],
+    toDOM: () => ['tr', 0],
+  },
+
+  /** Cells hold a single line of inline content: pipe tables can't hold blocks or line breaks. */
+  table_cell: {
+    content: '(text | widget_inline | image)*',
+    tableRole: 'cell',
+    isolating: true,
+    // colspan/rowspan/colwidth are required by prosemirror-tables; markdown has no spans, so they stay at 1.
+    attrs: { align: { default: null }, colspan: { default: 1 }, rowspan: { default: 1 }, colwidth: { default: null } },
+    parseDOM: ['td', 'th'].map((tag) => ({
+      tag,
+      getAttrs: (dom) => {
+        const el = dom as HTMLElement;
+        const align = el.style.textAlign || el.getAttribute('align') || '';
+        return { align: /^(left|center|right)$/.test(align) ? align : null };
+      },
+    })),
+    toDOM: (node) => ['td', node.attrs.align ? { style: `text-align: ${node.attrs.align}` } : {}, 0],
+  },
+
   text: { group: 'inline' },
 
   /** An inline widget: `:note[C4]` */

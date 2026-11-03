@@ -7,10 +7,12 @@ interface Props {
   rect: DOMRect;
   marks: Set<string>;
   onLink(): void;
+  /** Show heading buttons (not offered inside table cells) */
+  headings?: boolean;
 }
 
 /** Floating formatting bar shown over a text selection. */
-export function SelectionToolbar({ editor, rect, marks, onLink }: Props) {
+export function SelectionToolbar({ editor, rect, marks, onLink, headings = true }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [pos, setPos] = useState({ left: rect.left, top: rect.top - 44 });
   useLayoutEffect(() => {
@@ -36,10 +38,14 @@ export function SelectionToolbar({ editor, rect, marks, onLink }: Props) {
       {btn(<s>S</s>, 'Strikethrough', marks.has('strike'), () => editor.toggleMark('strike'))}
       {btn(<code>{'<>'}</code>, 'Code (⌘E)', marks.has('code'), () => editor.toggleMark('code'))}
       {btn(<IconLink width={15} height={15} />, 'Link (⌘K)', marks.has('link'), onLink)}
-      <span className="fmt-sep" />
-      {btn('H1', 'Heading 1', false, () => editor.setBlock('heading', 1), 'fmt-text')}
-      {btn('H2', 'Heading 2', false, () => editor.setBlock('heading', 2), 'fmt-text')}
-      {btn('H3', 'Heading 3', false, () => editor.setBlock('heading', 3), 'fmt-text')}
+      {headings && (
+        <>
+          <span className="fmt-sep" />
+          {btn('H1', 'Heading 1', false, () => editor.setBlock('heading', 1), 'fmt-text')}
+          {btn('H2', 'Heading 2', false, () => editor.setBlock('heading', 2), 'fmt-text')}
+          {btn('H3', 'Heading 3', false, () => editor.setBlock('heading', 3), 'fmt-text')}
+        </>
+      )}
     </div>
   );
 }

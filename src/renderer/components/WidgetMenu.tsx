@@ -1,9 +1,9 @@
 import { useEffect, useRef } from 'react';
-import type { WidgetDefinition } from '../../core/widgets';
 import { WidgetIcon } from './icons';
+import type { InsertItem } from './widgetSearch';
 
 interface Props {
-  items: WidgetDefinition[];
+  items: InsertItem[];
   /** Items are search results: show them in the given order instead of grouping by kind. */
   ranked?: boolean;
   active: number;
@@ -18,7 +18,7 @@ export function WidgetMenu({ items, ranked, active, onHover, onPick, style, clas
   useEffect(() => {
     listRef.current?.querySelector('.is-active')?.scrollIntoView({ block: 'nearest' });
   }, [active]);
-  const groups: { label: string; items: { w: WidgetDefinition; i: number }[] }[] = ranked
+  const groups: { label: string; items: { w: InsertItem; i: number }[] }[] = ranked
     ? [{ label: '', items: [] }]
     : [
         { label: 'In a sentence', items: [] },
@@ -27,7 +27,7 @@ export function WidgetMenu({ items, ranked, active, onHover, onPick, style, clas
   items.forEach((w, i) => groups[ranked || w.kind === 'inline' ? 0 : 1].items.push({ w, i }));
   return (
     <div className={`widget-menu ${className ?? ''}`} style={style} ref={listRef} role="listbox" onMouseDown={(e) => e.preventDefault()}>
-      {items.length === 0 && <div className="widget-menu-empty">No matching widgets</div>}
+      {items.length === 0 && <div className="widget-menu-empty">Nothing matches</div>}
       {groups
         .filter((g) => g.items.length)
         .map((g) => (

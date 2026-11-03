@@ -1,5 +1,22 @@
 import { WIDGETS, type WidgetDefinition } from '../../core/widgets';
 
+/** Anything the insert menu can list: widgets, plus built-in blocks like tables. */
+export type InsertItem = Pick<WidgetDefinition, 'name' | 'title' | 'description' | 'kind' | 'icon'>;
+
+const TABLE_ICON =
+  '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"><rect x="2.5" y="3.5" width="15" height="13" rx="2"/><path d="M2.5 8h15M2.5 12.25h15M8 8v8.5M12.5 8v8.5"/></svg>';
+
+export const TABLE_ITEM: InsertItem = {
+  name: 'table',
+  title: 'Table',
+  description: 'Rows and columns, written as a markdown table',
+  kind: 'block',
+  icon: TABLE_ICON,
+};
+
+/** Everything in the insert menu, in display order. */
+export const INSERT_ITEMS: InsertItem[] = [...WIDGETS, TABLE_ITEM];
+
 const SCORE = {
   exact: 100,
   prefix: 80,
@@ -20,7 +37,7 @@ function abbreviates(token: string, word: string): boolean {
   return i === token.length;
 }
 
-function scoreToken(w: WidgetDefinition, token: string): number {
+function scoreToken(w: InsertItem, token: string): number {
   const title = w.title.toLowerCase();
   const titleWords = words(title);
   if (token === w.name || token === title) return SCORE.exact;
@@ -36,7 +53,7 @@ function scoreToken(w: WidgetDefinition, token: string): number {
 }
 
 /** Scores a token, also trying its singular so "chords" finds "Chord symbol". */
-function scoreWord(w: WidgetDefinition, token: string): number {
+function scoreWord(w: InsertItem, token: string): number {
   const score = scoreToken(w, token);
   if (token.length <= 3 || !token.endsWith('s')) return score;
   // Just below the literal match, so "notes" still puts Notes ahead of Note.
@@ -44,13 +61,13 @@ function scoreWord(w: WidgetDefinition, token: string): number {
 }
 
 /**
- * Widgets matching `query`, best match first; ties keep registry order. Every word
- * of the query has to match, and an empty query returns the whole registry in order.
+ * Items matching `query`, best match first; ties keep registry order. Every word
+ * of the query has to match, and an empty query returns every item in order.
  */
-export function filterWidgets(query: string): WidgetDefinition[] {
+export function filterWidgets<T extends InsertItem = WidgetDefinition>(query: string, items: T[] = WIDGETS as unknown as T[]): T[] {
   const tokens = words(query);
-  if (!tokens.length) return WIDGETS;
-  return WIDGETS.map((widget) => {
+  if (!tokens.length) return items;
+  return items.map((widget) => {
     const scores = tokens.map((token) => scoreWord(widget, token));
     return { widget, score: scores.includes(0) ? 0 : scores.reduce((a, b) => a + b, 0) };
   })

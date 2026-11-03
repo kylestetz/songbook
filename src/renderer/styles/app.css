@@ -942,6 +942,65 @@ textarea.input {
 .widget-chip-toolbar button:hover {
   background: var(--mn-surface);
 }
+/* Context menus (table rows/columns) */
+.context-menu {
+  position: fixed;
+  z-index: 70;
+  min-width: 190px;
+  background: var(--mn-popover);
+  border-radius: var(--mn-radius);
+  box-shadow: var(--mn-shadow-popover);
+  padding: 5px;
+  animation: pop-in 0.12s ease;
+}
+.context-menu-item {
+  display: block;
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  font-size: 13px;
+  padding: 6px 10px;
+  border-radius: var(--mn-radius-xs);
+  cursor: default;
+}
+.context-menu-item:hover:not(:disabled) {
+  background: var(--mn-accent-soft);
+}
+.context-menu-item:disabled {
+  color: var(--mn-faint);
+}
+.context-menu-item.is-danger:hover:not(:disabled) {
+  background: var(--mn-danger-soft);
+  color: var(--mn-danger);
+}
+.context-menu-sep {
+  height: 1px;
+  background: var(--mn-border);
+  margin: 4px 6px;
+}
+.context-menu-segmented {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+}
+.context-menu-segmented button {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--mn-muted);
+  border-radius: var(--mn-radius-xs);
+}
+.context-menu-segmented button:hover {
+  background: var(--mn-surface);
+}
+.context-menu-segmented button.is-on {
+  background: var(--mn-accent-soft);
+  color: var(--mn-accent);
+}
 .link-popover {
   width: 320px;
   padding: 10px;

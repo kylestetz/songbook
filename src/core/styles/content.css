@@ -204,3 +204,26 @@
   margin-top: 1.4em;
   margin-bottom: 1.4em;
 }
+
+/* Tables (GFM pipe tables) */
+.mn-doc table {
+  border-collapse: collapse;
+  font-size: 0.94em;
+  line-height: 1.45;
+  /* Wide tables scroll sideways instead of overflowing the page */
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+}
+.mn-doc th,
+.mn-doc td {
+  border: 1px solid var(--mn-border-strong);
+  padding: 0.4em 0.75em;
+  text-align: left;
+  vertical-align: top;
+}
+.mn-doc th {
+  font-weight: 600;
+  background: var(--mn-surface);
+}

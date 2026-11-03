@@ -5,6 +5,7 @@ import { history } from 'prosemirror-history';
 import { Fragment, Slice, type Node as PMNode, type MarkType } from 'prosemirror-model';
 import { wrapInList } from 'prosemirror-schema-list';
 import { EditorState, NodeSelection, TextSelection, type Transaction } from 'prosemirror-state';
+import { tableEditing } from 'prosemirror-tables';
 import { EditorView } from 'prosemirror-view';
 import type { WidgetContext, WidgetValues } from '../core/widgets';
 import { getWidget } from '../core/widgets';
@@ -23,9 +24,20 @@ import {
   type SlashState,
 } from './plugins';
 import { schema } from './schema';
+import {
+  TableNodeView,
+  insertTable,
+  selectedTableCell,
+  tableAction,
+  tableKeymap,
+  tableNormalizePlugin,
+  type TableAction,
+  type TableAxis,
+  type TableMenuRequest,
+} from './tables';
 
 export { schema, parseMarkdown, serializeMarkdown };
-export type { SlashState };
+export type { SlashState, TableAction, TableAxis, TableMenuRequest };
 
 export interface EditorCallbacks {
   /** The document changed (call getMarkdown() to serialize; it's lazy for speed) */
@@ -37,6 +49,8 @@ export interface EditorCallbacks {
   /** Save a pasted/dropped image file; return the markdown src to use */
   saveImage?: (file: File) => Promise<string | null>;
   resolveImage?: (src: string) => string;
+  /** A table row/column handle was clicked */
+  onTableMenu?: (req: TableMenuRequest) => void;
 }
 
 export interface EditorHandle {
@@ -61,6 +75,10 @@ export interface EditorHandle {
   setLink(href: string | null): void;
   getLink(): string | null;
   insertImage(src: string, alt?: string): void;
+  insertTable(): void;
+  tableAction(tablePos: number, axis: TableAxis, index: number, action: TableAction): void;
+  /** Whether the selection is inside a table (only inline content goes there) */
+  inTable(): boolean;
   activeMarks(): Set<string>;
   wordCount(): number;
 }
@@ -74,6 +92,8 @@ function buildPlugins(cb: EditorCallbacks, slash: { current: SlashHandlers | nul
     // The slash menu must see Enter/arrows before the keymaps do
     slashPlugin(slash),
     buildInputRules(schema),
+    // Tab/Enter in a table move between cells instead of indenting/splitting
+    tableKeymap(schema),
     ...buildKeymaps(schema, { onLink: cb.onLink }),
     history(),
     dropCursor({ color: 'var(--mn-accent)', width: 2 }),
@@ -81,6 +101,9 @@ function buildPlugins(cb: EditorCallbacks, slash: { current: SlashHandlers | nul
     placeholderPlugin('Start writing…', 'Type / to add a musical widget'),
     highlightPlugin(),
     trailingParagraphPlugin(schema),
+    tableNormalizePlugin(),
+    // Last, so the gap cursor gets first go at arrow keys
+    tableEditing(),
   ];
 }
 
@@ -124,6 +147,7 @@ export function createEditor(mount: HTMLElement, body: string, ctx: WidgetContex
       widget_inline: (node, v, getPos) => new WidgetView(node, v, getPos, nodeViewOpts),
       image: (node) => new ImageView(node, nodeViewOpts),
       code_block: (node, v, getPos) => new CodeBlockView(node, v, getPos),
+      table: (node, v, getPos) => new TableNodeView(node, v, getPos, (req) => cb.onTableMenu?.(req)),
     },
     dispatchTransaction(tr: Transaction) {
       const next = view.state.apply(tr);
@@ -204,7 +228,13 @@ export function createEditor(mount: HTMLElement, body: string, ctx: WidgetContex
       } else {
         const { $from } = state.selection;
         const parent = $from.parent;
-        if (parent.type === schema.nodes.paragraph && parent.content.size === 0 && $from.depth >= 1) {
+        const cell = selectedTableCell(state);
+        if (cell) {
+          // Block widgets can't live in a cell; put it right after the table
+          const after = cell.tablePos + state.doc.nodeAt(cell.tablePos)!.nodeSize;
+          tr.insert(after, node);
+          tr.setSelection(NodeSelection.create(tr.doc, after));
+        } else if (parent.type === schema.nodes.paragraph && parent.content.size === 0 && $from.depth >= 1) {
           tr.replaceWith($from.before(), $from.after(), node);
           tr.setSelection(NodeSelection.create(tr.doc, $from.before()));
         } else {
@@ -297,7 +327,9 @@ export function createEditor(mount: HTMLElement, body: string, ctx: WidgetContex
         const start = $pos.start();
         let s = $pos.parentOffset;
         let e = $pos.parentOffset;
-        const text = parent.textBetween(0, parent.content.size, undefined, '￼');
+        const text = parent.textBetween(0, parent.content.size, undefined, (n) =>
+          n.type.name === 'hard_break' ? '\n' : '￼',
+        );
         while (s > 0 && /\S/.test(text[s - 1])) s--;
         while (e < text.length && /\S/.test(text[e])) e++;
         from = start + s;
@@ -318,6 +350,13 @@ export function createEditor(mount: HTMLElement, body: string, ctx: WidgetContex
       view.dispatch(view.state.tr.replaceSelectionWith(schema.nodes.image.create({ src, alt: alt ?? null })).scrollIntoView());
       view.focus();
     },
+    insertTable() {
+      run(insertTable(schema));
+    },
+    tableAction(tablePos, axis, index, action) {
+      run(tableAction(tablePos, axis, index, action));
+    },
+    inTable: () => !!selectedTableCell(view.state),
     activeMarks() {
       const out = new Set<string>();
       for (const name of ['strong', 'em', 'code', 'strike', 'link']) if (markActive(view.state, schema.marks[name])) out.add(name);

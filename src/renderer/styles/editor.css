@@ -171,3 +171,117 @@
     transform: none;
   }
 }
+
+/* Tables: the first row is the markdown header row */
+.mn-table {
+  position: relative;
+  width: fit-content;
+  max-width: 100%;
+  /* Room for the "add row" bar */
+  margin-bottom: 1.6em;
+}
+.mn-table-scroll {
+  overflow-x: auto;
+}
+.mn-editor .mn-table table {
+  display: table;
+  width: auto;
+  max-width: none;
+  overflow: visible;
+}
+.mn-table td {
+  position: relative;
+  min-width: 4.5em;
+}
+.mn-table tr:first-child > td {
+  font-weight: 600;
+  background: var(--mn-surface);
+}
+.mn-table .selectedCell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--mn-selection);
+  pointer-events: none;
+}
+
+.mn-table-add,
+.mn-table-grip {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: none;
+  font: inherit;
+  cursor: pointer;
+}
+.mn-table-add {
+  background: var(--mn-surface);
+  color: var(--mn-faint);
+  border-radius: var(--mn-radius-xs);
+  opacity: 0;
+  transition:
+    opacity 0.15s ease,
+    background 0.15s ease,
+    color 0.15s ease;
+}
+.mn-table-add svg {
+  width: 14px;
+  height: 14px;
+}
+.mn-table-add-col {
+  top: 0;
+  bottom: 0;
+  left: calc(100% + 4px);
+  width: 18px;
+}
+.mn-table-add-row {
+  left: 0;
+  right: 0;
+  top: calc(100% + 4px);
+  height: 18px;
+}
+.mn-table:hover .mn-table-add {
+  opacity: 1;
+}
+.mn-table-add:hover {
+  background: var(--mn-accent-soft);
+  color: var(--mn-accent);
+}
+
+.mn-table-grip {
+  z-index: 3;
+  background: var(--mn-card);
+  color: var(--mn-faint);
+  border-radius: var(--mn-radius-xs);
+  box-shadow: 0 0 0 1px var(--mn-border-strong);
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.12s ease;
+}
+.mn-table-grip-row {
+  width: 12px;
+  height: 22px;
+}
+.mn-table-grip-col {
+  width: 22px;
+  height: 12px;
+}
+.mn-table-grip-row svg {
+  width: 6px;
+  height: 12px;
+}
+.mn-table-grip-col svg {
+  width: 12px;
+  height: 6px;
+}
+.mn-table.is-hovering-cell .mn-table-grip {
+  opacity: 1;
+  pointer-events: auto;
+}
+.mn-table-grip:hover {
+  background: var(--mn-accent);
+  color: var(--mn-on-accent);
+  box-shadow: none;
+}

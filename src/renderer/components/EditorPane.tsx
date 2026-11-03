@@ -1,10 +1,11 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useLayoutEffect, useRef, useState } from 'react';
 import { NodeSelection, TextSelection } from 'prosemirror-state';
-import { createEditor, type EditorHandle } from '../../editor';
+import { createEditor, type EditorHandle, type TableMenuRequest } from '../../editor';
 import { getWidget, type WidgetContext, type WidgetValues } from '../../core/widgets';
 import { api } from '../api';
 import { WidgetMenu } from './WidgetMenu';
-import { filterWidgets } from './widgetSearch';
+import { INSERT_ITEMS, filterWidgets, type InsertItem } from './widgetSearch';
+import { TableMenu } from './TableMenu';
 import { WidgetModal, WidgetPopover } from './WidgetEditor';
 import { LinkPopover, SelectionToolbar } from './SelectionToolbar';
 import { IconPencil, IconTrash } from './icons';
@@ -45,6 +46,7 @@ export const EditorPane = forwardRef<EditorPaneHandle, Props>(function EditorPan
   const [menu, setMenu] = useState<{ anchor: DOMRect; query: string } | null>(null);
   const [menuActive, setMenuActive] = useState(0);
   const [link, setLink] = useState<{ initial: string; rect: DOMRect } | null>(null);
+  const [tableMenu, setTableMenu] = useState<TableMenuRequest | null>(null);
   const [mouseDown, setMouseDown] = useState(false);
   const raf = useRef(0);
   const onChangeRef = useRef(onChange);
@@ -83,6 +85,7 @@ export const EditorPane = forwardRef<EditorPaneHandle, Props>(function EditorPan
         }
       },
       onLink: openLink,
+      onTableMenu: setTableMenu,
       saveImage: async (file) => api.saveAsset(noteIdRef.current ?? '', file.name || 'image.png', await file.arrayBuffer()),
       resolveImage: (src) => api.assetUrl(src),
     });
@@ -104,10 +107,17 @@ export const EditorPane = forwardRef<EditorPaneHandle, Props>(function EditorPan
 
   const ed = editorRef.current;
   const slash = ed?.getSlash();
-  const slashItems = slash?.active ? filterWidgets(slash.query) : [];
-  const menuItems = menu ? filterWidgets(menu.query) : [];
+  // Table cells only hold a line of inline content
+  const insertable: InsertItem[] = ed?.inTable() ? INSERT_ITEMS.filter((i) => i.kind === 'inline') : INSERT_ITEMS;
+  const slashItems = slash?.active ? filterWidgets(slash.query, insertable) : [];
+  const menuItems = menu ? filterWidgets(menu.query, insertable) : [];
 
   const startInsert = useCallback((name: string) => {
+    if (name === 'table') {
+      setMenu(null);
+      editorRef.current?.insertTable();
+      return;
+    }
     const def = getWidget(name);
     if (!def) return;
     setMenu(null);
@@ -152,6 +162,7 @@ export const EditorPane = forwardRef<EditorPaneHandle, Props>(function EditorPan
       setModal(null);
       setPopover(null);
       setMenu(null);
+      setTableMenu(null);
       editorRef.current?.setContent(body);
       const view = editorRef.current?.view;
       if (view) {
@@ -178,6 +189,7 @@ export const EditorPane = forwardRef<EditorPaneHandle, Props>(function EditorPan
       else if (cmd === 'code_block') ed.setBlock('code_block');
       else if (cmd === 'bullet_list' || cmd === 'ordered_list') ed.toggleList(cmd);
       else if (cmd === 'blockquote') ed.toggleBlockquote();
+      else if (cmd === 'table') ed.insertTable();
     },
     wordCount: () => editorRef.current?.wordCount() ?? 0,
   }));
@@ -221,7 +233,7 @@ export const EditorPane = forwardRef<EditorPaneHandle, Props>(function EditorPan
   const sel = ed?.view.state.selection;
   let selectionRect: DOMRect | null = null;
   let widgetSel: { pos: number; rect: DOMRect; inline: boolean } | null = null;
-  if (ed && sel && ed.view.hasFocus() && !mouseDown && !modal && !popover && !link) {
+  if (ed && sel && ed.view.hasFocus() && !mouseDown && !modal && !popover && !link && !tableMenu) {
     if (sel instanceof TextSelection && !sel.empty && !sel.$from.parent.type.spec.code) {
       selectionRect = rectFromCoords(ed.view, sel.from, sel.to);
     } else if (sel instanceof NodeSelection && sel.node.type.name === 'widget_inline') {
@@ -233,6 +245,18 @@ export const EditorPane = forwardRef<EditorPaneHandle, Props>(function EditorPan
   // Everything above is positioned from live editor coordinates, so re-render whenever
   // scrolling or resizing moves the anchor. Capture catches the .editor-scroll container.
   const isAnchored = !!(selectionRect || widgetSel || popover || link || slash?.active);
+  // The table menu is anchored to a grip that moves on scroll; just close it.
+  useEffect(() => {
+    if (!tableMenu) return;
+    const close = () => setTableMenu(null);
+    window.addEventListener('scroll', close, true);
+    window.addEventListener('resize', close);
+    return () => {
+      window.removeEventListener('scroll', close, true);
+      window.removeEventListener('resize', close);
+    };
+  }, [tableMenu]);
+  const tableNode = ed && tableMenu ? ed.view.state.doc.nodeAt(tableMenu.tablePos) : null;
   useEffect(() => {
     if (!isAnchored) return;
     const reposition = () => {
@@ -273,7 +297,7 @@ export const EditorPane = forwardRef<EditorPaneHandle, Props>(function EditorPan
         />
       )}
 
-      {ed && selectionRect && inView(selectionRect) && <SelectionToolbar editor={ed} rect={selectionRect} marks={ed.activeMarks()} onLink={openLink} />}
+      {ed && selectionRect && inView(selectionRect) && <SelectionToolbar editor={ed} rect={selectionRect} marks={ed.activeMarks()} onLink={openLink} headings={!ed.inTable()} />}
 
       {ed && widgetSel && inView(widgetSel.rect) && (
         <div
@@ -296,6 +320,24 @@ export const EditorPane = forwardRef<EditorPaneHandle, Props>(function EditorPan
             <IconTrash width={14} height={14} />
           </button>
         </div>
+      )}
+
+      {ed && tableMenu && tableNode?.type.name === 'table' && (
+        <TableMenu
+          axis={tableMenu.axis}
+          index={tableMenu.index}
+          rows={tableNode.childCount}
+          cols={tableNode.firstChild!.childCount}
+          align={tableMenu.axis === 'col' ? (tableNode.firstChild!.maybeChild(tableMenu.index)?.attrs.align ?? null) : null}
+          rect={tableMenu.rect}
+          onClose={() => setTableMenu(null)}
+          onAction={(action) => {
+            ed.tableAction(tableMenu.tablePos, tableMenu.axis, tableMenu.index, action);
+            // Alignment keeps the menu open so you can see the result
+            if (action.type === 'align') return;
+            setTableMenu(null);
+          }}
+        />
       )}
 
       {ed && link && (

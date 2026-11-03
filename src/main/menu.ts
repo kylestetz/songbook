@@ -87,6 +87,8 @@ export function buildMenu(getWindow: () => BrowserWindow | null, actions: { choo
         { label: 'Widget…', accelerator: 'CmdOrCtrl+Shift+K', click: send('insert-widget') },
         { type: 'separator' },
         ...WIDGETS.map((w) => ({ label: w.title, click: send('insert-widget', w.name) })),
+        { type: 'separator' },
+        { label: 'Table', click: send('format', 'table') },
       ],
     },
     {

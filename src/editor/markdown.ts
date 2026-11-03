@@ -1,4 +1,4 @@
-import { MarkdownParser, MarkdownSerializer, defaultMarkdownSerializer } from 'prosemirror-markdown';
+import { MarkdownParser, MarkdownSerializer, defaultMarkdownSerializer, type MarkdownSerializerState } from 'prosemirror-markdown';
 import type { Node as PMNode } from 'prosemirror-model';
 import type Token from 'markdown-it/lib/token.mjs';
 import { createMarkdownIt, escapeDirectiveText, serializeDirective, type Directive } from '../core/markdown';
@@ -44,7 +44,61 @@ export const markdownParser = new MarkdownParser(schema, md, {
   code_inline: { mark: 'code', noCloseToken: true },
   directive_inline: { node: 'widget_inline', getAttrs: widgetAttrs },
   directive_block: { node: 'widget_block', getAttrs: widgetAttrs },
+  table: { block: 'table' },
+  thead: { ignore: true },
+  tbody: { ignore: true },
+  tr: { block: 'table_row' },
+  th: { block: 'table_cell', getAttrs: cellAttrs },
+  td: { block: 'table_cell', getAttrs: cellAttrs },
 });
+
+function cellAttrs(tok: Token) {
+  const m = /text-align:\s*(left|center|right)/.exec(tok.attrGet('style') ?? '');
+  return { align: m ? m[1] : null };
+}
+
+/** One cell's inline content as a single line of markdown, with pipes escaped. */
+function cellMarkdown(cell: PMNode): string {
+  if (!cell.content.size) return '';
+  const doc = schema.topNodeType.create(null, schema.nodes.paragraph.create(null, cell.content));
+  return markdownSerializer
+    .serialize(doc)
+    .trim()
+    .replace(/\s*\n\s*/g, ' ')
+    .replace(/\|/g, '\\|');
+}
+
+/** Write a table as a GFM pipe table, padding columns so the source lines up. */
+function serializeTable(state: MarkdownSerializerState, node: PMNode) {
+  const rows: string[][] = [];
+  node.forEach((row) => {
+    const cells: string[] = [];
+    row.forEach((cell) => cells.push(cellMarkdown(cell)));
+    rows.push(cells);
+  });
+  const header = node.firstChild!;
+  const cols = Math.max(...rows.map((r) => r.length));
+  const aligns = Array.from({ length: cols }, (_, i) => (i < header.childCount ? (header.child(i).attrs.align as string | null) : null));
+  const widths = aligns.map((_, i) => Math.max(3, ...rows.map((r) => (r[i] ?? '').length)));
+  const line = (cells: string[]) => `| ${cells.join(' | ')} |`;
+  const pad = (s: string, i: number) => (aligns[i] === 'right' ? s.padStart(widths[i]) : s.padEnd(widths[i]));
+  const delimiter = widths.map((w, i) => {
+    const a = aligns[i];
+    if (a === 'center') return `:${'-'.repeat(w - 2)}:`;
+    if (a === 'left') return `:${'-'.repeat(w - 1)}`;
+    if (a === 'right') return `${'-'.repeat(w - 1)}:`;
+    return '-'.repeat(w);
+  });
+  rows.forEach((cells, r) => {
+    state.write(line(widths.map((_, i) => pad(cells[i] ?? '', i))));
+    state.ensureNewLine();
+    if (r === 0) {
+      state.write(line(delimiter));
+      state.ensureNewLine();
+    }
+  });
+  state.closeBlock(node);
+}
 
 function listIsTight(tokens: Token[], i: number) {
   while (++i < tokens.length) if (tokens[i].type !== 'list_item_open') return tokens[i].hidden;
@@ -89,6 +143,10 @@ export const markdownSerializer = new MarkdownSerializer(
       state.write(serializeDirective('block', directiveFromValues(node.attrs.name, node.attrs.values)));
       state.closeBlock(node);
     },
+    table: serializeTable,
+    // Rows and cells are written by `table`
+    table_row() {},
+    table_cell() {},
   },
   {
     ...base.marks,

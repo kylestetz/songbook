@@ -12,7 +12,7 @@ export interface MarkdownOptions extends DirectivePluginOptions {
 }
 
 /**
- * The single markdown dialect used everywhere: CommonMark + strikethrough +
+ * The single markdown dialect used everywhere: CommonMark + strikethrough + tables +
  * directives. The editor and the publisher both parse with this, so what you
  * see while writing is what gets published.
  */
@@ -23,7 +23,7 @@ export function createMarkdownIt(opts: MarkdownOptions = {}): ReturnType<typeof 
     typographer: false,
     highlight: opts.highlight ? (code, lang) => opts.highlight!(code, lang) : undefined,
   });
-  md.enable('strikethrough');
+  md.enable(['strikethrough', 'table']);
   md.use(directivePlugin, { isInline: (name) => INLINE_WIDGETS.has(name), ...opts });
   return md;
 }
