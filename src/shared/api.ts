@@ -25,6 +25,15 @@ export interface MusicNotesApi {
   createNote(content?: string): Promise<string>;
   deleteNote(id: string): Promise<void>;
   revealNote(id: string): Promise<void>;
+  /** Copy a note to a new file next to it; returns the new id */
+  duplicateNote(id: string): Promise<string>;
+  /** Open the note's file in the system's default app for markdown */
+  openNoteExternally(id: string): Promise<void>;
+  /**
+   * Show the native context menu for a note. Choices arrive through `onMenu` (with the note id as `arg`);
+   * the promise resolves once the menu closes. Returns false when there is no native menu (browser).
+   */
+  showNoteMenu(id: string): Promise<boolean>;
   /** Save image bytes next to the notes; returns the relative src to use in markdown */
   saveAsset(noteId: string, name: string, data: ArrayBuffer): Promise<string>;
   /** Resolve a markdown image src to something an <img> can load */
@@ -50,5 +59,7 @@ export type MenuCommand =
   | 'find-note'
   | 'delete-note'
   | 'reveal-note'
+  | 'duplicate-note'
+  | 'open-note-externally'
   | 'format'
   | 'folder-changed';

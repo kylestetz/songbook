@@ -1,6 +1,13 @@
 import { app, Menu, type BrowserWindow, type MenuItemConstructorOptions } from 'electron';
 import { WIDGETS } from '../core/widgets/registry-meta';
 
+/** "Show in Finder" on macOS, with the platform's own file manager name elsewhere. */
+export function revealLabel() {
+  if (process.platform === 'darwin') return 'Show in Finder';
+  if (process.platform === 'win32') return 'Show in Explorer';
+  return 'Show in File Manager';
+}
+
 export function buildMenu(getWindow: () => BrowserWindow | null, actions: { chooseFolder: () => void }) {
   const send = (command: string, arg?: unknown) => () => getWindow()?.webContents.send('menu', command, arg);
   const isMac = process.platform === 'darwin';
@@ -30,7 +37,8 @@ export function buildMenu(getWindow: () => BrowserWindow | null, actions: { choo
         { label: 'New Note', accelerator: 'CmdOrCtrl+N', click: send('new-note') },
         { type: 'separator' },
         { label: 'Open Notes Folder…', accelerator: 'CmdOrCtrl+Shift+O', click: actions.chooseFolder },
-        { label: 'Show Note in Finder', click: send('reveal-note') },
+        { label: revealLabel().replace(/^Show/, 'Show Note'), click: send('reveal-note') },
+        { label: 'Duplicate Note', click: send('duplicate-note') },
         { type: 'separator' },
         { label: 'Export as HTML…', accelerator: 'CmdOrCtrl+Shift+E', click: send('export-html') },
         { type: 'separator' },

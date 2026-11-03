@@ -76,6 +76,14 @@ export function createBrowserApi(): MusicNotesApi {
       persist(notes);
     },
     revealNote: async () => {},
+    duplicateNote: async (id) => {
+      const id2 = unique(id);
+      notes[id2] = { content: notes[id]?.content ?? '', modified: Date.now() };
+      persist(notes);
+      return id2;
+    },
+    openNoteExternally: async () => {},
+    showNoteMenu: async () => false,
     saveAsset: (_noteId, name, data) =>
       new Promise((resolve) => {
         const ext = name.split('.').pop()?.toLowerCase() ?? 'png';
