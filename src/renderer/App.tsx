@@ -151,6 +151,24 @@ export function App() {
     [notes, openNote, refreshList],
   );
 
+  const duplicateNote = useCallback(
+    async (id: string) => {
+      if (id === idRef.current) await flushSave();
+      const copy = await api.duplicateNote(id);
+      await refreshList();
+      await openNote(copy);
+    },
+    [flushSave, openNote, refreshList],
+  );
+
+  const openNoteExternally = useCallback(
+    async (id: string) => {
+      if (id === idRef.current) await flushSave();
+      await api.openNoteExternally(id);
+    },
+    [flushSave],
+  );
+
   const updateSettings = useCallback(
     (s: DocSettings) => {
       settingsRef.current = s;
@@ -237,10 +255,13 @@ export function App() {
   useEffect(
     () =>
       api.onMenu(async (command, arg) => {
+        // Sidebar context-menu commands carry the right-clicked note's id; app-menu ones target the open note.
+        const target = typeof arg === 'string' && notes.some((n) => n.id === arg) ? arg : idRef.current;
         switch (command) {
           case 'new-note':
             return newNote();
           case 'export-html':
+            if (target && target !== idRef.current) await openNote(target);
             return doExport();
           case 'toggle-sidebar':
             return toggleSidebar();
@@ -255,10 +276,16 @@ export function App() {
             setTimeout(() => searchRef.current?.focus(), 0);
             return;
           case 'delete-note':
-            if (idRef.current) return deleteNote(idRef.current);
+            if (target) return deleteNote(target);
             return;
           case 'reveal-note':
-            if (idRef.current) return api.revealNote(idRef.current);
+            if (target) return api.revealNote(target);
+            return;
+          case 'duplicate-note':
+            if (target) return duplicateNote(target);
+            return;
+          case 'open-note-externally':
+            if (target) return openNoteExternally(target);
             return;
           case 'format':
             editor.current?.format(String(arg));
@@ -273,7 +300,7 @@ export function App() {
           }
         }
       }),
-    [newNote, doExport, toggleSidebar, deleteNote, refreshList, openNote],
+    [notes, newNote, doExport, toggleSidebar, deleteNote, duplicateNote, openNoteExternally, refreshList, openNote],
   );
 
   // Browser-only keyboard shortcuts (in Electron the app menu provides these)
@@ -308,7 +335,7 @@ export function App() {
         onQuery={setQuery}
         onSelect={(id) => void openNote(id)}
         onNew={() => void newNote()}
-        onDelete={(id) => void deleteNote(id)}
+        onContextMenu={isElectron ? (id) => api.showNoteMenu(id) : undefined}
         folderName={folder}
         isMac={isMac}
       />

@@ -11,6 +11,9 @@ const api: MusicNotesApi = {
   createNote: (content) => ipcRenderer.invoke('notes:create', content),
   deleteNote: (id) => ipcRenderer.invoke('notes:delete', id),
   revealNote: (id) => ipcRenderer.invoke('notes:reveal', id),
+  duplicateNote: (id) => ipcRenderer.invoke('notes:duplicate', id),
+  openNoteExternally: (id) => ipcRenderer.invoke('notes:open-externally', id),
+  showNoteMenu: (id) => ipcRenderer.invoke('notes:context-menu', id),
   saveAsset: (noteId, name, data) => ipcRenderer.invoke('assets:save', noteId, name, data),
   assetUrl: (src) => {
     if (/^(https?:|data:|blob:|mn-asset:)/.test(src)) return src;

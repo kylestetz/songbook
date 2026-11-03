@@ -1,6 +1,6 @@
-import { forwardRef, useMemo } from 'react';
+import { forwardRef, useMemo, useState } from 'react';
 import type { NoteMeta } from '../../shared/api';
-import { IconCompose, IconSearch, IconTrash } from './icons';
+import { IconCompose, IconSearch } from './icons';
 
 interface Props {
   notes: NoteMeta[];
@@ -9,7 +9,8 @@ interface Props {
   onQuery(q: string): void;
   onSelect(id: string): void;
   onNew(): void;
-  onDelete(id: string): void;
+  /** Show a native context menu for a note; resolves when it closes. Omit to keep the default menu. */
+  onContextMenu?(id: string): Promise<unknown>;
   folderName: string;
   isMac: boolean;
 }
@@ -28,7 +29,9 @@ function formatDate(ms: number): string {
 }
 
 export const Sidebar = forwardRef<HTMLInputElement, Props>(function Sidebar(props, searchRef) {
-  const { notes, currentId, query, onQuery, onSelect, onNew, onDelete, folderName, isMac } = props;
+  const { notes, currentId, query, onQuery, onSelect, onNew, onContextMenu, folderName, isMac } = props;
+  // The note whose context menu is open, so it stays highlighted while the menu is up
+  const [contextId, setContextId] = useState<string | null>(null);
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     if (!q) return notes;
@@ -52,8 +55,17 @@ export const Sidebar = forwardRef<HTMLInputElement, Props>(function Sidebar(prop
             key={n.id}
             role="button"
             tabIndex={0}
-            className={`note-item${n.id === currentId ? ' is-selected' : ''}`}
+            className={`note-item${n.id === currentId ? ' is-selected' : ''}${n.id === contextId ? ' is-context' : ''}`}
             onClick={() => onSelect(n.id)}
+            onContextMenu={
+              onContextMenu
+                ? (e) => {
+                    e.preventDefault();
+                    setContextId(n.id);
+                    void onContextMenu(n.id).finally(() => setContextId(null));
+                  }
+                : undefined
+            }
             onKeyDown={(e) => {
               if (e.key === 'Enter') onSelect(n.id);
             }}
@@ -63,17 +75,6 @@ export const Sidebar = forwardRef<HTMLInputElement, Props>(function Sidebar(prop
               <span className="note-item-date">{formatDate(n.modified)}</span>
               {n.excerpt ? <span className="note-item-excerpt">{n.excerpt}</span> : null}
             </div>
-            <button
-              className="note-item-delete"
-              title="Move to Trash"
-              aria-label="Move to Trash"
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(n.id);
-              }}
-            >
-              <IconTrash width={14} height={14} />
-            </button>
           </div>
         ))}
         {!filtered.length && <div className="note-list-empty">{query ? 'No matching notes' : 'No notes yet'}</div>}

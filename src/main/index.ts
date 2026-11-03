@@ -1,9 +1,9 @@
-import { app, BrowserWindow, dialog, ipcMain, nativeTheme, net, protocol, shell } from 'electron';
+import { app, BrowserWindow, clipboard, dialog, ipcMain, Menu, nativeTheme, net, protocol, shell, type WebContents } from 'electron';
 import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import welcome from '../../resources/welcome.md?raw';
-import { buildMenu } from './menu';
+import { buildMenu, revealLabel } from './menu';
 import { NotesStore } from './notes-store';
 
 protocol.registerSchemesAsPrivileged([
@@ -87,6 +87,27 @@ async function chooseFolder(): Promise<string | null> {
   return res.filePaths[0];
 }
 
+/** Native right-click menu for a note in the sidebar. Resolves when the menu closes. */
+function showNoteMenu(sender: WebContents, id: string): Promise<boolean> {
+  const full = store.resolve(id);
+  const send = (command: string) => () => sender.send('menu', command, id);
+  const menu = Menu.buildFromTemplate([
+    { label: 'Open in Default App', click: send('open-note-externally') },
+    { label: revealLabel(), click: () => shell.showItemInFolder(full) },
+    { type: 'separator' },
+    { label: 'Duplicate', click: send('duplicate-note') },
+    { label: 'Export as HTML…', click: send('export-html') },
+    { type: 'separator' },
+    { label: 'Copy File Path', click: () => clipboard.writeText(full) },
+    { label: 'Copy File Name', click: () => clipboard.writeText(id) },
+    { type: 'separator' },
+    { label: 'Move to Trash…', click: send('delete-note') },
+  ]);
+  return new Promise((resolve) => {
+    menu.popup({ window: BrowserWindow.fromWebContents(sender) ?? undefined, callback: () => resolve(true) });
+  });
+}
+
 function registerIpc() {
   ipcMain.handle('notes:folder', () => store.folder);
   ipcMain.handle('notes:choose-folder', () => chooseFolder());
@@ -96,6 +117,12 @@ function registerIpc() {
   ipcMain.handle('notes:create', (_e, content?: string) => store.create(content ?? ''));
   ipcMain.handle('notes:delete', (_e, id: string) => store.remove(id, (p) => shell.trashItem(p)));
   ipcMain.handle('notes:reveal', (_e, id: string) => shell.showItemInFolder(store.resolve(id)));
+  ipcMain.handle('notes:duplicate', (_e, id: string) => store.duplicate(id));
+  ipcMain.handle('notes:open-externally', async (_e, id: string) => {
+    const err = await shell.openPath(store.resolve(id));
+    if (err) throw new Error(err);
+  });
+  ipcMain.handle('notes:context-menu', (e, id: string) => showNoteMenu(e.sender, id));
   ipcMain.handle('assets:save', (_e, _noteId: string, name: string, data: ArrayBuffer) => store.saveAsset(name, data));
   ipcMain.handle('assets:data-url', (_e, src: string) => store.assetDataUrl(src));
   ipcMain.handle('export:html', async (_e, suggestedName: string, html: string) => {

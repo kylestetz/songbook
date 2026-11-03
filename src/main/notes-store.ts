@@ -1,4 +1,4 @@
-import { promises as fs, watch, type FSWatcher } from 'node:fs';
+import { constants as fsConstants, promises as fs, watch, type FSWatcher } from 'node:fs';
 import path from 'node:path';
 import { deriveExcerpt, deriveTitle } from '../core/markdown/frontmatter';
 import type { NoteMeta } from '../shared/api';
@@ -117,6 +117,15 @@ export class NotesStore {
     if (next === id) return id;
     await fs.rename(current, path.join(this.folder, next));
     return next;
+  }
+
+  /** Copy a note to "<name> 2.md" (or the next free number); returns the new id. */
+  async duplicate(id: string): Promise<string> {
+    const source = this.resolve(id);
+    const base = id.replace(NOTE_EXT, '').replace(/ \d+$/, '');
+    const name = await this.uniqueName(base);
+    await fs.copyFile(source, path.join(this.folder, name), fsConstants.COPYFILE_EXCL);
+    return name;
   }
 
   async remove(id: string, trash: (p: string) => Promise<void>) {

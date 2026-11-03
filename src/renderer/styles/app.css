@@ -140,7 +140,6 @@ button {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-right: 18px;
 }
 .note-item-meta {
   margin-top: 3px;
@@ -158,27 +157,8 @@ button {
   margin-right: 6px;
   font-variant-numeric: tabular-nums;
 }
-.note-item-delete {
-  position: absolute;
-  top: 7px;
-  right: 6px;
-  border: none;
-  background: transparent;
-  color: var(--mn-faint);
-  width: 24px;
-  height: 24px;
-  border-radius: var(--mn-radius-xs);
-  display: grid;
-  place-items: center;
-  opacity: 0;
-  padding: 0;
-}
-.note-item:hover .note-item-delete {
-  opacity: 1;
-}
-.note-item-delete:hover {
-  color: var(--mn-danger);
-  background: var(--mn-hover);
+.note-item.is-context:not(.is-selected) {
+  box-shadow: inset 0 0 0 2px var(--mn-accent-soft);
 }
 .note-list-empty {
   color: var(--mn-faint);
