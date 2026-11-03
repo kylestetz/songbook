@@ -57,17 +57,16 @@ function periodicWave(ctx: AudioContext, id: string, harmonics: number[]): Perio
   return w;
 }
 
-/** A soft acoustic-ish piano: harmonic stack + filter envelope + long decay. */
+/** A soft acoustic-ish piano: harmonic stack + filter envelope + quick damper release. */
 const piano: Instrument = {
   id: 'piano',
   label: 'Piano',
   play({ ctx, out, freq, time, duration, velocity }) {
     const g = envGain(ctx, out, time);
     const peak = 0.32 * velocity;
-    const decay = Math.max(0.6, 3.2 - Math.log2(freq / 110) * 0.6);
     g.gain.linearRampToValueAtTime(peak, time + 0.005);
-    g.gain.setTargetAtTime(peak * 0.35, time + 0.005, 0.25);
-    g.gain.setTargetAtTime(0, time + Math.max(duration, 0.1), Math.min(decay, 0.35));
+    g.gain.setTargetAtTime(peak * 0.15, time + 0.005, 0.4);
+    g.gain.setTargetAtTime(0, time + Math.max(duration, 0.1), 0.12);
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.setValueAtTime(Math.min(16000, freq * 12 * (0.6 + velocity)), time);
@@ -102,7 +101,7 @@ const epiano: Instrument = {
     const peak = 0.3 * velocity;
     g.gain.linearRampToValueAtTime(peak, time + 0.004);
     g.gain.setTargetAtTime(peak * 0.4, time + 0.004, 0.6);
-    g.gain.setTargetAtTime(0, time + Math.max(duration, 0.1), 0.25);
+    g.gain.setTargetAtTime(0, time + Math.max(duration, 0.1), 0.12);
     const carrier = ctx.createOscillator();
     carrier.frequency.value = freq;
     const mod = ctx.createOscillator();
@@ -316,7 +315,7 @@ const guitar: Instrument = {
     const level = velocity / 0.8;
     g.gain.setValueAtTime(level, time);
     // Let the string ring for the held duration, then mute it.
-    g.gain.setTargetAtTime(0, time + Math.max(duration, 0.3) + 0.4, 0.25);
+    g.gain.setTargetAtTime(0, time + Math.max(duration, 0.3) + 0.1, 0.15);
     g.connect(guitarAmp(ctx, out));
     const src = ctx.createBufferSource();
     src.buffer = pluckBuffer(ctx, freq);
@@ -362,7 +361,7 @@ const synth: Instrument = {
     const peak = 0.12 * velocity;
     g.gain.linearRampToValueAtTime(peak, time + 0.04);
     g.gain.setTargetAtTime(peak * 0.7, time + 0.04, 0.3);
-    g.gain.setTargetAtTime(0, time + duration, 0.25);
+    g.gain.setTargetAtTime(0, time + duration, 0.12);
     const filter = ctx.createBiquadFilter();
     filter.type = 'lowpass';
     filter.Q.value = 2;
@@ -391,7 +390,7 @@ const marimba: Instrument = {
     const g = envGain(ctx, out, time);
     const peak = 0.4 * velocity;
     g.gain.linearRampToValueAtTime(peak, time + 0.002);
-    g.gain.setTargetAtTime(0, time + 0.002, 0.18 + 40 / freq);
+    g.gain.setTargetAtTime(0, time + 0.002, 0.12 + 25 / freq);
     const osc = ctx.createOscillator();
     osc.type = 'sine';
     osc.frequency.value = freq;

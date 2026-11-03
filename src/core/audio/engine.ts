@@ -1,6 +1,9 @@
 import { Note } from '@tonaljs/tonal';
 import { getInstrument } from './instruments';
 
+/** Shortens one-shot notes (key presses, chord chips). Sequences keep their exact timing. */
+const ONE_SHOT_LENGTH = 0.6;
+
 export interface PlayOptions {
   /** Seconds to hold each note */
   duration?: number;
@@ -93,6 +96,7 @@ export class AudioEngine {
     const { ctx, out } = this.ensure();
     const inst = getInstrument(opts.instrument ?? this.instrument);
     const start = ctx.currentTime + 0.02 + at;
+    const duration = (opts.duration ?? 1) * ONE_SHOT_LENGTH;
     notes.forEach((n, i) => {
       const midi = Note.midi(n);
       if (midi == null) return;
@@ -102,11 +106,11 @@ export class AudioEngine {
         out,
         freq,
         time: start + i * (opts.strum ?? 0),
-        duration: opts.duration ?? 1,
+        duration,
         velocity: opts.velocity ?? 0.8,
       });
       this.voices.add(stop);
-      setTimeout(() => this.voices.delete(stop), ((opts.duration ?? 1) + at + 3) * 1000);
+      setTimeout(() => this.voices.delete(stop), (duration + at + 3) * 1000);
     });
   }
 

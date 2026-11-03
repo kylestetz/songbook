@@ -36,7 +36,7 @@ export function SettingsPanel({ settings, onChange, onClose }: Props) {
         { time: 0, notes: ['C4'], duration: 0.4 },
         { time: 0.22, notes: ['E4'], duration: 0.4 },
         { time: 0.44, notes: ['G4'], duration: 0.4 },
-        { time: 0.7, notes: ['C3', 'E4', 'G4', 'C5'], duration: 1.4, strum: 0.015 },
+        { time: 0.7, notes: ['C3', 'E4', 'G4', 'C5'], duration: 0.9, strum: 0.015 },
       ],
       { instrument: sound },
     );

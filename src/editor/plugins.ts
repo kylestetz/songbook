@@ -102,7 +102,8 @@ export function slashPlugin(handlers: { current: SlashHandlers | null }) {
         const $from = sel.$from;
         if (!$from.parent.isTextblock || $from.parent.type.spec.code) return { ...inactive, dismissedAt: null };
         const before = $from.parent.textBetween(Math.max(0, $from.parentOffset - 30), $from.parentOffset, undefined, '￼');
-        const m = /(?:^|\s)\/([a-z]*)$/i.exec(before);
+        // The query may contain spaces ("/chord pro"); the menu hides once nothing matches.
+        const m = /(?:^|\s)\/((?:[a-z]+(?: [a-z]+)* ?)?)$/i.exec(before);
         if (!m) return { ...inactive, dismissedAt: null };
         const from = $from.pos - m[1].length - 1;
         if (dismissedAt === from) return { ...inactive, dismissedAt };

@@ -3,7 +3,8 @@ import { NodeSelection, TextSelection } from 'prosemirror-state';
 import { createEditor, type EditorHandle } from '../../editor';
 import { getWidget, type WidgetContext, type WidgetValues } from '../../core/widgets';
 import { api } from '../api';
-import { filterWidgets, WidgetMenu } from './WidgetMenu';
+import { WidgetMenu } from './WidgetMenu';
+import { filterWidgets } from './widgetSearch';
 import { WidgetModal, WidgetPopover } from './WidgetEditor';
 import { LinkPopover, SelectionToolbar } from './SelectionToolbar';
 import { IconPencil, IconTrash } from './icons';
@@ -229,12 +230,36 @@ export const EditorPane = forwardRef<EditorPaneHandle, Props>(function EditorPan
     }
   }
 
+  // Everything above is positioned from live editor coordinates, so re-render whenever
+  // scrolling or resizing moves the anchor. Capture catches the .editor-scroll container.
+  const isAnchored = !!(selectionRect || widgetSel || popover || link || slash?.active);
+  useEffect(() => {
+    if (!isAnchored) return;
+    const reposition = () => {
+      cancelAnimationFrame(raf.current);
+      raf.current = requestAnimationFrame(() => setVersion((v) => v + 1));
+    };
+    window.addEventListener('scroll', reposition, true);
+    window.addEventListener('resize', reposition);
+    return () => {
+      window.removeEventListener('scroll', reposition, true);
+      window.removeEventListener('resize', reposition);
+    };
+  }, [isAnchored]);
+
+  // Hide toolbars once their anchor scrolls out of the editor, rather than floating over the chrome.
+  const scroller = mountRef.current?.closest('.editor-scroll')?.getBoundingClientRect();
+  const inView = (r: DOMRect) => !scroller || (r.bottom > scroller.top && r.top < scroller.bottom);
+
+  const popoverDom = ed && popover ? (ed.view.nodeDOM(popover.pos) as HTMLElement | null) : null;
+  const linkRect = ed && sel && link ? rectFromCoords(ed.view, sel.from, sel.to) : null;
+
   return (
     <>
       <div className="editor-mount" ref={mountRef} />
 
       {ed && slash?.active && slashItems.length > 0 && (
-        <WidgetMenu items={slashItems} active={Math.min(menuActive, slashItems.length - 1)} onHover={setMenuActive} onPick={pickFromSlash} style={slashStyle} className="is-floating" />
+        <WidgetMenu items={slashItems} ranked={!!slash.query.trim()} active={Math.min(menuActive, slashItems.length - 1)} onHover={setMenuActive} onPick={pickFromSlash} style={slashStyle} className="is-floating" />
       )}
 
       {menu && (
@@ -248,10 +273,16 @@ export const EditorPane = forwardRef<EditorPaneHandle, Props>(function EditorPan
         />
       )}
 
-      {ed && selectionRect && <SelectionToolbar editor={ed} rect={selectionRect} marks={ed.activeMarks()} onLink={openLink} />}
+      {ed && selectionRect && inView(selectionRect) && <SelectionToolbar editor={ed} rect={selectionRect} marks={ed.activeMarks()} onLink={openLink} />}
 
-      {ed && widgetSel && (
-        <div className="widget-chip-toolbar" style={{ left: widgetSel.rect.left + widgetSel.rect.width / 2, top: widgetSel.rect.top - 38 }}>
+      {ed && widgetSel && inView(widgetSel.rect) && (
+        <div
+          className="widget-chip-toolbar"
+          style={{
+            left: widgetSel.rect.left + widgetSel.rect.width / 2,
+            top: widgetSel.rect.top - 38 < 56 ? widgetSel.rect.bottom + 8 : widgetSel.rect.top - 38,
+          }}
+        >
           <button
             onMouseDown={(e) => e.preventDefault()}
             onClick={() => {
@@ -270,7 +301,7 @@ export const EditorPane = forwardRef<EditorPaneHandle, Props>(function EditorPan
       {ed && link && (
         <LinkPopover
           initial={link.initial}
-          rect={link.rect}
+          rect={linkRect ?? link.rect}
           onClose={() => {
             setLink(null);
             ed.focus();
@@ -286,7 +317,7 @@ export const EditorPane = forwardRef<EditorPaneHandle, Props>(function EditorPan
         <WidgetPopover
           name={popover.name}
           values={popover.values}
-          anchor={popover.rect}
+          anchor={popoverDom?.getBoundingClientRect() ?? popover.rect}
           onChange={(values) => {
             setPopover({ ...popover, values });
             ed.updateWidget(popover.pos, values);

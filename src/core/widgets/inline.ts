@@ -205,16 +205,16 @@ export const intervalWidget: WidgetDefinition = {
           const step = 0.55;
           const events =
             mode === 'harmonic'
-              ? [{ time: 0, notes, duration: 1.4 }]
+              ? [{ time: 0, notes, duration: 0.9 }]
               : mode === 'melodic'
                 ? [
-                    { time: 0, notes: [notes[0]], duration: 0.8 },
-                    { time: step, notes: [notes[1]], duration: 1 },
+                    { time: 0, notes: [notes[0]], duration: 0.6 },
+                    { time: step, notes: [notes[1]], duration: 0.7 },
                   ]
                 : [
                     { time: 0, notes: [notes[0]], duration: 0.7 },
                     { time: step, notes: [notes[1]], duration: 0.7 },
-                    { time: step * 2.4, notes, duration: 1.4 },
+                    { time: step * 2.4, notes, duration: 0.9 },
                   ];
           ctx.audio.sequence(events, { instrument });
         },

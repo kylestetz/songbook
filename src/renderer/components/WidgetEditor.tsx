@@ -179,7 +179,9 @@ export function WidgetPopover({ name, values, anchor, onChange, onClose, onDelet
     left = Math.max(12, Math.min(window.innerWidth - w - 12, left));
     const bottom = window.innerHeight - (dockRef.current?.offsetHeight ?? 0) - 12;
     let top = anchor.bottom + 8;
-    if (top + h > bottom) top = Math.max(12, anchor.top - h - 8);
+    if (top + h > bottom) top = anchor.top - h - 8;
+    // The anchor can scroll off-screen; keep the open form reachable.
+    top = Math.max(12, Math.min(bottom - h, top));
     setPos({ left, top });
   }, [anchor]);
 

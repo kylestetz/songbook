@@ -16,7 +16,12 @@ export function SelectionToolbar({ editor, rect, marks, onLink }: Props) {
   useLayoutEffect(() => {
     const w = ref.current?.offsetWidth ?? 220;
     const left = Math.max(12, Math.min(window.innerWidth - w - 12, rect.left + rect.width / 2 - w / 2));
-    const top = rect.top - 44 < 56 ? rect.bottom + 8 : rect.top - 44;
+    const h = ref.current?.offsetHeight ?? 36;
+    let top = rect.top - 44;
+    if (top < 56) {
+      // No room above: go below, or pin to the top when the selection spans the whole viewport.
+      top = rect.bottom + 8 + h > window.innerHeight ? 56 : rect.bottom + 8;
+    }
     setPos({ left, top });
   }, [rect]);
   const btn = (label: React.ReactNode, title: string, active: boolean, fn: () => void, cls = '') => (
@@ -57,8 +62,10 @@ export function LinkPopover({ initial, rect, onSubmit, onClose }: LinkProps) {
     return () => window.removeEventListener('mousedown', onDown, true);
   }, [onClose]);
   const left = Math.max(12, Math.min(window.innerWidth - 332, rect.left));
+  // The anchor can scroll off-screen; keep the open form reachable.
+  const top = Math.max(12, Math.min(window.innerHeight - (ref.current?.offsetHeight ?? 0) - 12, rect.bottom + 8));
   return (
-    <div className="popover link-popover" ref={ref} style={{ left, top: rect.bottom + 8 }}>
+    <div className="popover link-popover" ref={ref} style={{ left, top }}>
       <form
         onSubmit={(e) => {
           e.preventDefault();
