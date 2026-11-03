@@ -13,9 +13,7 @@ describe('directives', () => {
     const src = [
       '# Title',
       '',
-      'Play :note[C#4] then :chord[Cmaj7]{octave=4} and :notes[C E G]{chord}.',
-      '',
-      '::scale{root=D mode=dorian octave=4}',
+      'Play :note[C#4] then :chord[Cmaj7]{octave=4} and :notes[C E G]{chord} in :scale{root=D mode=dorian octave=3}.',
       '',
       '::progression[ii7 V7 Imaj7]{key=C beats=2}',
       '',
@@ -23,6 +21,11 @@ describe('directives', () => {
       '',
     ].join('\n');
     expect(roundTrip(src)).toBe(src);
+  });
+  it('reads an inline widget written as a block as a paragraph holding it', () => {
+    expect(roundTrip('Intro\n\n::scale{root=D mode=dorian}\n\nOutro\n')).toBe('Intro\n\n:scale{root=D mode=dorian}\n\nOutro\n');
+    const html = renderBodyHtml('::scale{root=D mode=dorian}\n');
+    expect(html).toContain('<p><span class="mn-widget mn-widget-inline" data-widget="scale"');
   });
   it('keeps unknown widgets and attributes', () => {
     const src = '::future-thing{x=1 y="a b"}\n\nText :mystery[abc]{z=2} here.\n';
@@ -89,9 +92,10 @@ describe('frontmatter', () => {
 
 describe('publish', () => {
   it('renders widget placeholders', () => {
-    const html = renderBodyHtml('Hear :note[C4].\n\n::scale{root=D mode=dorian}\n\n```js\nlet a = 1\n```\n');
+    const html = renderBodyHtml('Hear :note[C4] and :scale{root=D mode=dorian}.\n\n::guitar[Am7]\n\n```js\nlet a = 1\n```\n');
     expect(html).toContain('data-widget="note"');
     expect(html).toContain('data-widget="scale"');
+    expect(html).toContain('data-widget="guitar"');
     expect(html).toContain('&quot;mode&quot;:&quot;dorian&quot;');
     expect(html).toContain('hljs-keyword');
   });

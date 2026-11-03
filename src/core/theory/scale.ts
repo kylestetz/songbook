@@ -5,16 +5,18 @@ export interface ScaleOption {
   id: string;
   label: string;
   group: string;
+  /** Shorter name for tight spaces, e.g. inline in a sentence */
+  short?: string;
 }
 
 /** Curated list of scales/modes presented in pickers. Ids are tonal scale names. */
 export const SCALES: ScaleOption[] = [
-  { id: 'major', label: 'Major (Ionian)', group: 'Diatonic modes' },
+  { id: 'major', label: 'Major (Ionian)', group: 'Diatonic modes', short: 'Major' },
   { id: 'dorian', label: 'Dorian', group: 'Diatonic modes' },
   { id: 'phrygian', label: 'Phrygian', group: 'Diatonic modes' },
   { id: 'lydian', label: 'Lydian', group: 'Diatonic modes' },
   { id: 'mixolydian', label: 'Mixolydian', group: 'Diatonic modes' },
-  { id: 'minor', label: 'Natural minor (Aeolian)', group: 'Diatonic modes' },
+  { id: 'minor', label: 'Natural minor (Aeolian)', group: 'Diatonic modes', short: 'Minor' },
   { id: 'locrian', label: 'Locrian', group: 'Diatonic modes' },
   { id: 'harmonic minor', label: 'Harmonic minor', group: 'Minor scales' },
   { id: 'melodic minor', label: 'Melodic minor', group: 'Minor scales' },
@@ -40,8 +42,15 @@ export function scaleLabel(id: string): string {
   return SCALES.find((s) => s.id === id)?.label ?? id.replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+export function scaleShortLabel(id: string): string {
+  const s = SCALES.find((o) => o.id === id);
+  return s?.short ?? scaleLabel(id);
+}
+
 export interface ScaleInfo {
   name: string;
+  /** Like `name`, but with the short scale label ("C Major") */
+  shortName: string;
   /** Notes with octaves, ascending, including the octave tonic at the end */
   notes: string[];
   /** Degree labels aligned with `notes` */
@@ -59,6 +68,7 @@ export function getScale(root: string, mode: string, octave = 4): ScaleInfo | nu
   const top = Note.transpose(s.notes[0], '8P');
   return {
     name: `${r.pc} ${scaleLabel(mode)}`,
+    shortName: `${r.pc} ${scaleShortLabel(mode)}`,
     notes: [...s.notes, top],
     degrees: [...s.intervals.map(degreeLabel), '8'],
     intervals: s.intervals,

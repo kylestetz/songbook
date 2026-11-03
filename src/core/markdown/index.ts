@@ -1,5 +1,8 @@
 import MarkdownIt from 'markdown-it';
 import { directivePlugin, type DirectivePluginOptions } from './directive';
+import { WIDGETS } from '../widgets/registry-meta';
+
+const INLINE_WIDGETS = new Set(WIDGETS.filter((w) => w.kind === 'inline').map((w) => w.name));
 
 export * from './directive';
 export * from './frontmatter';
@@ -21,6 +24,6 @@ export function createMarkdownIt(opts: MarkdownOptions = {}): ReturnType<typeof 
     highlight: opts.highlight ? (code, lang) => opts.highlight!(code, lang) : undefined,
   });
   md.enable('strikethrough');
-  md.use(directivePlugin, opts);
+  md.use(directivePlugin, { isInline: (name) => INLINE_WIDGETS.has(name), ...opts });
   return md;
 }

@@ -27,16 +27,28 @@ describe('widget registry', () => {
     renderWidget(el, 'guitar', { chord: 'nonsense' }, ctx);
     expect(el.textContent).toContain('voicing');
     renderWidget(el, 'scale', { root: 'H', mode: 'major' }, ctx);
-    expect(el.querySelector('.mn-error')).not.toBeNull();
+    expect(el.querySelector('.mn-pill.is-invalid')).not.toBeNull();
     renderWidget(el, 'nope', {}, ctx);
     expect(el.textContent).toContain('Unknown widget');
   });
 });
 
+describe('scale widget', () => {
+  it('lists the root and mode, then the intervals or note names', () => {
+    const el = document.createElement('span');
+    renderWidget(el, 'scale', valuesFromDirective({ name: 'scale', attrs: { root: 'C', mode: 'dorian' } }), ctx);
+    expect(el.querySelector('.mn-scale-name')!.textContent).toBe('C Dorian');
+    expect(el.querySelector('.mn-scale-tones')!.textContent).toBe('1 2 ♭3 4 5 6 ♭7');
+    renderWidget(el, 'scale', valuesFromDirective({ name: 'scale', attrs: { root: 'Eb', mode: 'major', labels: 'notes' } }), ctx);
+    expect(el.querySelector('.mn-scale-name')!.textContent).toBe('E♭ Major');
+    expect(el.querySelector('.mn-scale-tones')!.textContent).toBe('E♭ F G A♭ B♭ C D');
+  });
+});
+
 describe('values <-> directive', () => {
   it('omits defaults but keeps required fields', () => {
-    const d = directiveFromValues('scale', { root: 'D', mode: 'dorian', octave: '4', labels: 'degrees', chords: 'none', direction: 'up' });
-    expect(d).toEqual({ name: 'scale', label: undefined, attrs: { root: 'D', mode: 'dorian', octave: '4' } });
+    const d = directiveFromValues('scale', { root: 'D', mode: 'dorian', octave: '4', labels: 'degrees', direction: 'up' });
+    expect(d).toEqual({ name: 'scale', label: undefined, attrs: { root: 'D', mode: 'dorian' } });
   });
   it('maps the label field', () => {
     const d = directiveFromValues('chord', { symbol: 'Dm7', octave: '3' });

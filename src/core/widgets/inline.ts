@@ -17,7 +17,7 @@ import { chordSymbolEl } from './symbol';
 import { OCTAVE_OPTIONS, SOUND_FIELD, WIDGET_ICONS } from './common';
 import type { WidgetContext, WidgetDefinition, WidgetValues } from './types';
 
-function pill(kind: string, content: (Node | string)[], title: string, onPlay: () => void, invalid = false): HTMLElement {
+export function pill(kind: string, content: (Node | string)[], title: string, onPlay: () => void, invalid = false): HTMLElement {
   const el = h('span', { class: `mn-pill mn-${kind}${invalid ? ' is-invalid' : ''}`, title }, ...content);
   if (!invalid) {
     clickable(el, () => {

@@ -43,10 +43,15 @@
   opacity: 0.45;
   font-weight: 400;
 }
-.mn-notes-item.is-current {
+.mn-notes-item.is-current,
+.mn-scale-item.is-current {
   color: var(--mn-text);
 }
-.mn-interval-arrow {
+.mn-scale-name {
+  font-weight: 650;
+}
+.mn-interval-arrow,
+.mn-scale-arrow {
   opacity: 0.55;
   font-weight: 400;
   font-size: 0.85em;

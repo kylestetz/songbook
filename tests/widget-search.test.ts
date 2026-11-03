@@ -14,7 +14,7 @@ describe('filterWidgets', () => {
   });
 
   it('ranks title matches ahead of description matches', () => {
-    expect(names('chord')).toEqual(['chord', 'progression', 'guitar', 'piano', 'notes', 'scale', 'circle']);
+    expect(names('chord')).toEqual(['chord', 'progression', 'guitar', 'piano', 'notes', 'circle']);
   });
 
   it('puts an exact match first, even when an earlier widget also matches', () => {

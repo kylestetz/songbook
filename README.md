@@ -67,7 +67,7 @@ The opening :chord[Bbmaj7#11] floats; the :interval[A4 D5] in the melody...
 | Notes | inline | `:notes[C E G B]`, `:notes[D F A C]{chord}` | Plays in sequence, or together with `chord` |
 | Chord symbol | inline | `:chord[Cmaj7]`, `:chord[Am/G]` | Hover shows the chord tones |
 | Interval | inline | `:interval[C4 G4]{play=harmonic}` | Shows the interval name, e.g. P5 |
-| Scale or mode | block | `::scale{root=D mode=dorian octave=4 chords=sevenths}` | Keyboard and optional diatonic chords. `labels=degrees\|notes\|none`, `direction=up\|updown\|down` |
+| Scale or mode | inline | `:scale{root=D mode=dorian}` | Shows "D Dorian → 1 2 ♭3 4 5 6 ♭7"; plays the scale on click. `labels=degrees\|notes`, `direction=up\|updown\|down`, `octave` |
 | Chord progression | block | `::progression[ii7 V7 Imaj7]{key=C beats=2 style=arpeggio}` | Chord symbols or roman numerals. `style=block\|strum\|arpeggio\|pulse`, `loop` |
 | Guitar chord | block | `::guitar[Am7]`, `::guitar[F]{frets=133211}` | Automatic voicings, or custom `frets`. `tuning=standard\|drop-d\|dadgad\|open-g\|open-d\|half-step-down` |
 | Piano chord | block | `::piano[Fmaj7/A]{labels=intervals}` | A chord symbol or a list of notes |

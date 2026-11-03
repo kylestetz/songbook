@@ -64,8 +64,8 @@ export function buildInputRules(schema: Schema) {
       tr.removeStoredMark(m.link);
       return tr;
     }),
-    // Typing an inline directive by hand turns it into a widget: :note[C4]
-    new InputRule(/(?<![\w:\\]):([a-z][a-z0-9-]*\[[^\]\n]*\](?:\{[^}\n]*\})?)$/, (state, match, start, end) => {
+    // Typing an inline directive by hand turns it into a widget: :note[C4], :scale{root=D mode=dorian}
+    new InputRule(/(?<![\w:\\]):([a-z][a-z0-9-]*(?:\[[^\]\n]*\](?:\{[^}\n]*\})?|\{[^}\n]*\}))$/, (state, match, start, end) => {
       // `end` excludes the char just typed; the regex includes it
       const parsed = parseDirectiveAt(match[1], 0);
       if (!parsed || parsed.end !== match[1].length) return null;

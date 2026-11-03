@@ -1,15 +1,25 @@
-import { Note } from '@tonaljs/tonal';
-import { diatonicChords, displayNote, getScale, prettyAccidentals, SCALES } from '../theory';
-import { card, clickable, errorBox, flash, h, playButton, soundFor } from './dom';
-import { CAPTION_FIELD, OCTAVE_OPTIONS, ROOT_OPTIONS, SOUND_FIELD, WIDGET_ICONS } from './common';
-import { keyboard, keyboardRange, type KeyMark } from './keyboard';
-import type { WidgetDefinition } from './types';
+import { displayNote, getScale, prettyAccidentals, SCALES, type ScaleInfo } from '../theory';
+import { h, soundFor } from './dom';
+import { OCTAVE_OPTIONS, ROOT_OPTIONS, SOUND_FIELD, WIDGET_ICONS } from './common';
+import { pill } from './inline';
+import type { WidgetDefinition, WidgetValues } from './types';
+
+/** One label per scale tone (no repeated octave): intervals ("1 2 ♭3") or note names ("D E F"). */
+function toneLabels(info: ScaleInfo, values: WidgetValues): string[] {
+  return values.labels === 'notes'
+    ? info.pcs.map((n) => displayNote(n, { octave: false }))
+    : info.degrees.slice(0, info.pcs.length);
+}
+
+function scaleInfo(values: WidgetValues): ScaleInfo | null {
+  return getScale(values.root || 'C', values.mode || 'major', parseInt(values.octave || '4', 10));
+}
 
 export const scaleWidget: WidgetDefinition = {
   name: 'scale',
   title: 'Scale or mode',
-  description: 'A scale on a keyboard, optionally with its diatonic chords',
-  kind: 'block',
+  description: 'A scale or mode, spelled out as intervals or note names, that plays when clicked',
+  kind: 'inline',
   icon: WIDGET_ICONS.scale,
   fields: [
     { key: 'root', label: 'Root', type: 'select', options: ROOT_OPTIONS, required: true },
@@ -20,27 +30,14 @@ export const scaleWidget: WidgetDefinition = {
       required: true,
       options: SCALES.map((s) => ({ value: s.id, label: s.label, group: s.group })),
     },
-    { key: 'octave', label: 'Octave', type: 'select', options: OCTAVE_OPTIONS, required: true },
     {
       key: 'labels',
-      label: 'Key labels',
+      label: 'Show',
       type: 'select',
       options: [
-        { value: 'degrees', label: 'Scale degrees' },
-        { value: 'notes', label: 'Note names' },
-        { value: 'none', label: 'None' },
+        { value: 'degrees', label: 'Intervals (1 2 ♭3 …)' },
+        { value: 'notes', label: 'Note names (D E F …)' },
       ],
-    },
-    {
-      key: 'chords',
-      label: 'Diatonic chords',
-      type: 'select',
-      options: [
-        { value: 'none', label: 'Hide' },
-        { value: 'triads', label: 'Triads' },
-        { value: 'sevenths', label: 'Seventh chords' },
-      ],
-      help: 'Available for seven-note scales.',
     },
     {
       key: 'direction',
@@ -53,92 +50,65 @@ export const scaleWidget: WidgetDefinition = {
       ],
       advanced: true,
     },
-    CAPTION_FIELD,
+    { key: 'octave', label: 'Octave', type: 'select', options: OCTAVE_OPTIONS, advanced: true },
     SOUND_FIELD,
   ],
-  defaults: { root: 'C', mode: 'major', octave: '4', labels: 'degrees', chords: 'none', direction: 'up' },
-  summary: (v) => `${v.root} ${v.mode} scale`,
+  defaults: { root: 'C', mode: 'major', octave: '4', labels: 'degrees', direction: 'up' },
+  summary: (v) => {
+    const info = scaleInfo(v);
+    if (!info) return `${v.root} ${v.mode} scale`;
+    return `${prettyAccidentals(info.shortName)} → ${toneLabels(info, v).join(' ')}`;
+  },
   render(el, values, ctx) {
-    const octave = parseInt(values.octave || '4', 10);
-    const info = getScale(values.root || 'C', values.mode || 'major', octave);
+    const info = scaleInfo(values);
     if (!info) {
-      el.append(errorBox(`Unknown scale: ${values.root} ${values.mode}`));
+      el.append(pill('scale', [`${values.root || '?'} ${values.mode || '?'}`], 'Unknown scale', () => {}, true));
       return;
     }
-    const midis = info.notes.map((n) => Note.midi(n)!);
-    const labels = values.labels || 'degrees';
-    const marks = new Map<number, KeyMark>();
-    info.notes.forEach((n, i) => {
-      const m = midis[i];
-      const label =
-        labels === 'degrees' ? info.degrees[i].replace('8', '1') : labels === 'notes' ? displayNote(n, { octave: false }) : undefined;
-      marks.set(m, { label, tone: i === 0 || i === info.notes.length - 1 ? 'root' : 'tone' });
-    });
 
-    const { el: frame, body, actions } = card({
-      kind: 'scale',
-      title: prettyAccidentals(info.name),
-      caption: values.caption,
-    });
+    const labels = toneLabels(info, values);
+    const items = labels.map((l) => h('span', { class: 'mn-scale-item' }, l));
+    const list = h('span', { class: 'mn-scale-tones' });
+    items.forEach((it, i) => list.append(...(i ? [' ', it] : [it])));
 
-    const instrument = () => soundFor(values, ctx);
-    const kb = keyboard({
-      ...keyboardRange(midis),
-      marks,
-      onKey: (m) => ctx.audio.play([Note.fromMidi(m)], { instrument: instrument(), duration: 0.9 }),
-    });
-    body.append(h('div', { class: 'mn-keyboard-wrap' }, kb.el));
-
-    // Diatonic chords
-    const chordsMode = values.chords || 'none';
-    if (chordsMode !== 'none') {
-      const chords = diatonicChords(values.root || 'C', values.mode || 'major', chordsMode === 'sevenths', octave);
-      if (chords.length) {
-        const row = h('div', { class: 'mn-chips mn-chips-chords' });
-        for (const c of chords) {
-          const chip = h(
-            'span',
-            { class: 'mn-chip mn-chip-chord' },
-            h('span', { class: 'mn-chip-sub' }, prettyAccidentals(c.degree)),
-            h('span', { class: 'mn-chip-main' }, prettyAccidentals(c.symbol)),
-          );
-          clickable(chip, () => {
-            ctx.audio.play(c.notes, { instrument: instrument(), duration: 1.4, strum: 0.02 });
-            kb.setActive(c.notes.map((n) => Note.midi(n)!));
-            flash(chip, 700);
-            setTimeout(() => kb.setActive([]), 700);
-          });
-          row.append(chip);
-        }
-        body.append(row);
-      }
-    }
-
-    // Playback
+    // Playback runs through the octave tonic, which lights up the "1" again
     const dir = values.direction || 'up';
     const order = info.notes.map((_, i) => i);
     const seq = dir === 'down' ? [...order].reverse() : dir === 'updown' ? [...order, ...order.slice(0, -1).reverse()] : order;
+    const highlight = (idx: number | null) =>
+      items.forEach((it, j) => it.classList.toggle('is-current', idx !== null && idx % items.length === j));
+
     let handle: { stop(): void } | null = null;
-    const btn = playButton(
-      () => {
-        const step = ctx.audio.beat / 2;
-        handle = ctx.audio.sequence(
-          seq.map((idx, i) => ({ time: i * step, notes: [info.notes[idx]], duration: step * 1.5 })),
-          {
-            instrument: instrument(),
-            onEvent: (i) => kb.setActive([midis[seq[i]]]),
-            onEnd: () => {
-              kb.setActive([]);
-              btn.set(false);
-            },
-          },
-        );
-      },
-      () => handle?.stop(),
-      'Play scale',
+    const play = () => {
+      handle?.stop();
+      const step = Math.min(0.5, ctx.audio.beat / 2);
+      handle = ctx.audio.sequence(
+        seq.map((idx, i) => ({ time: i * step, notes: [info.notes[idx]], duration: step * 1.5 })),
+        {
+          instrument: soundFor(values, ctx),
+          onEvent: (i) => highlight(seq[i]),
+          onEnd: () => highlight(null),
+        },
+      );
+    };
+
+    el.append(
+      pill(
+        'scale',
+        [
+          h('span', { class: 'mn-scale-name' }, prettyAccidentals(info.shortName)),
+          h('span', { class: 'mn-scale-arrow' }, '→'),
+          list,
+        ],
+        `Play ${prettyAccidentals(info.name)}`,
+        play,
+      ),
     );
-    actions.append(btn.el);
-    el.append(frame);
-    return { destroy: () => handle?.stop() };
+    return {
+      destroy: () => {
+        handle?.stop();
+        highlight(null);
+      },
+    };
   },
 };

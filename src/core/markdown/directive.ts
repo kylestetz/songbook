@@ -155,6 +155,12 @@ export function escapeDirectiveText(text: string): string {
 export interface DirectivePluginOptions {
   renderInline?: (d: Directive) => string;
   renderBlock?: (d: Directive) => string;
+  /**
+   * Directives that only exist inline. Written on a line of their own with the
+   * block syntax (`::name{…}`), they're read as a paragraph holding the inline
+   * directive, so documents from before a widget became inline still load.
+   */
+  isInline?: (name: string) => boolean;
 }
 
 export function directivePlugin(md: MarkdownIt, opts: DirectivePluginOptions = {}): void {
@@ -187,6 +193,16 @@ export function directivePlugin(md: MarkdownIt, opts: DirectivePluginOptions = {
       const res = parseDirectiveAt(line, 2);
       if (!res || line.slice(res.end).trim() !== '') return false;
       if (silent) return true;
+      if (opts.isInline?.(res.directive.name)) {
+        state.push('paragraph_open', 'p', 1).map = [startLine, startLine + 1];
+        const inline = state.push('inline', '', 0);
+        inline.content = line.slice(1).trim();
+        inline.map = [startLine, startLine + 1];
+        inline.children = [];
+        state.push('paragraph_close', 'p', -1);
+        state.line = startLine + 1;
+        return true;
+      }
       const token = state.push('directive_block', 'div', 0);
       token.meta = res.directive;
       token.block = true;
