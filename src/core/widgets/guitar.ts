@@ -67,8 +67,9 @@ export const guitarWidget: WidgetDefinition = {
     const title = chordSymbolEl(values.chord || '');
     const { el: frame, body, actions } = card({
       kind: 'guitar',
+      label: 'Guitar',
       title,
-      subtitle: tuning.id !== 'standard' ? tuning.label : undefined,
+      meta: tuning.id !== 'standard' ? tuning.label : undefined,
       caption: values.caption,
     });
     if (!voicing) {
@@ -111,11 +112,12 @@ function fretboard(v: Voicing, notes: (string | null)[], showLabels: boolean, on
   const rows = Math.max(4, maxF - v.baseFret + 1);
   const SX = 22;
   const FY = 28;
-  const left = 30;
-  const top = 26;
-  const width = left + SX * (strings - 1) + 30;
+  // Half-pixel offsets keep the 1px grid lines crisp instead of smeared across two pixels
+  const left = 30.5;
+  const top = 26.5;
+  const width = Math.round(left + SX * (strings - 1) + 30);
   const gridH = FY * rows;
-  const height = top + gridH + (showLabels ? 26 : 10);
+  const height = Math.round(top + gridH + (showLabels ? 26 : 10));
   const svg = s('svg', { class: 'mn-fretboard', viewBox: `0 0 ${width} ${height}`, width, role: 'img', 'aria-label': 'Guitar chord diagram' });
 
   // frets
@@ -129,7 +131,7 @@ function fretboard(v: Voicing, notes: (string | null)[], showLabels: boolean, on
   // strings
   for (let i = 0; i < strings; i++) {
     const x = left + i * SX;
-    svg.append(s('line', { class: 'mn-string', x1: x, x2: x, y1: top, y2: top + gridH, 'stroke-width': 1.6 - i * 0.18 }));
+    svg.append(s('line', { class: 'mn-string', x1: x, x2: x, y1: top, y2: top + gridH }));
   }
   // barre
   if (v.barre) {
@@ -141,6 +143,7 @@ function fretboard(v: Voicing, notes: (string | null)[], showLabels: boolean, on
         y: y - 8,
         width: (v.barre.to - v.barre.from) * SX + 16,
         height: 16,
+        // Fully rounded so the ends line up with the round dots
         rx: 8,
       }),
     );

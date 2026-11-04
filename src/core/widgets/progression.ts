@@ -57,7 +57,8 @@ export const progressionWidget: WidgetDefinition = {
 
     const { el: frame, body, actions } = card({
       kind: 'progression',
-      title: key ? `In ${prettyAccidentals(key.label)}` : 'Progression',
+      label: 'Progression',
+      meta: key ? prettyAccidentals(key.label) : undefined,
       caption: values.caption,
     });
 

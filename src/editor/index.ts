@@ -20,6 +20,7 @@ import {
   slashKey,
   slashPlugin,
   trailingParagraphPlugin,
+  widgetSelectionPlugin,
   type SlashHandlers,
   type SlashState,
 } from './plugins';
@@ -100,6 +101,7 @@ function buildPlugins(cb: EditorCallbacks, slash: { current: SlashHandlers | nul
     gapCursor(),
     placeholderPlugin('Start writing…', 'Type / to add a musical widget'),
     highlightPlugin(),
+    widgetSelectionPlugin(),
     trailingParagraphPlugin(schema),
     tableNormalizePlugin(),
     // Last, so the gap cursor gets first go at arrow keys

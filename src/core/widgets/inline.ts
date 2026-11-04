@@ -63,7 +63,7 @@ export const noteWidget: WidgetDefinition = {
     el.append(
       pill(
         'note',
-        [h('span', { class: 'mn-pill-glyph' }, '♪'), n ? displayNote(n.name) : values.pitch || '?'],
+        [n ? displayNote(n.name) : values.pitch || '?'],
         n ? `Play ${displayNote(name)}` : 'Not a valid note',
         () => ctx.audio.play([name], { instrument: soundFor(values, ctx), duration: 1.2 }),
         !n,
@@ -80,7 +80,7 @@ export const chordWidget: WidgetDefinition = {
   icon: WIDGET_ICONS.chord,
   labelField: 'symbol',
   fields: [
-    { key: 'symbol', label: 'Chord', type: 'chord', required: true, placeholder: 'Cmaj7', instrument: { mode: 'chord', octave: 'octave' } },
+    { key: 'symbol', label: 'Chord', type: 'chord', required: true, placeholder: 'Cmaj7', instrument: { mode: 'chord', octave: 'octave', voicing: true } },
     { key: 'octave', label: 'Octave', type: 'select', options: OCTAVE_OPTIONS, advanced: true },
     SOUND_FIELD,
   ],
@@ -130,7 +130,7 @@ export const notesWidget: WidgetDefinition = {
     });
     const p = pill(
       together ? 'notes is-chord' : 'notes',
-      [h('span', { class: 'mn-pill-glyph' }, together ? '♫' : '♪'), ...parts],
+      parts,
       together ? 'Play as a chord' : 'Play notes',
       () => {
         if (together) playNotes(ctx, values, notes, { together: true });
@@ -156,6 +156,9 @@ export const notesWidget: WidgetDefinition = {
   },
 };
 
+/** Interval names read as part of the sentence: "a perfect fourth", "an octave" */
+const intervalName = (long: string) => long.toLowerCase();
+
 export const intervalWidget: WidgetDefinition = {
   name: 'interval',
   title: 'Interval',
@@ -165,6 +168,15 @@ export const intervalWidget: WidgetDefinition = {
   labelField: 'notes',
   fields: [
     { key: 'notes', label: 'From and to', type: 'notes', required: true, placeholder: 'C4 G4', help: 'Two notes, e.g. "C4 G4" or "E Bb".', instrument: { mode: 'interval' } },
+    {
+      key: 'show',
+      label: 'Show',
+      type: 'select',
+      options: [
+        { value: 'notes', label: 'The two notes (C → G)' },
+        { value: 'name', label: 'The interval name (perfect fifth)' },
+      ],
+    },
     {
       key: 'play',
       label: 'Playback',
@@ -177,11 +189,12 @@ export const intervalWidget: WidgetDefinition = {
     },
     SOUND_FIELD,
   ],
-  defaults: { notes: 'C4 G4', play: 'both' },
+  defaults: { notes: 'C4 G4', show: 'notes', play: 'both' },
   summary: (v) => {
     const [a, b] = tokenize(v.notes ?? '');
     const info = a && b ? intervalBetween(a, b) : null;
-    return info ? `${displayNote(a)}–${displayNote(b)} (${info.long})` : v.notes ?? '';
+    if (!info) return v.notes ?? '';
+    return v.show === 'name' ? intervalName(info.long) : `${displayNote(a)}–${displayNote(b)}`;
   },
   render(el, values, ctx) {
     const [a, b] = tokenize(values.notes ?? '');
@@ -191,15 +204,16 @@ export const intervalWidget: WidgetDefinition = {
     el.append(
       pill(
         'interval',
+        !info
+          ? [values.notes || '?']
+          : values.show === 'name'
+            ? [intervalName(info.long)]
+            : [h('span', {}, displayNote(a)), h('span', { class: 'mn-interval-arrow' }, '→'), h('span', {}, displayNote(b))],
         info
-          ? [
-              h('span', {}, displayNote(a)),
-              h('span', { class: 'mn-interval-arrow' }, '→'),
-              h('span', {}, displayNote(b)),
-              h('span', { class: 'mn-interval-name' }, info.short),
-            ]
-          : [values.notes || '?'],
-        info ? `${info.long} · ${info.semitones} semitone${info.semitones === 1 ? '' : 's'}` : 'Enter two notes',
+          ? values.show === 'name'
+            ? `${displayNote(a)} → ${displayNote(b)} · ${info.semitones} semitone${info.semitones === 1 ? '' : 's'}`
+            : `${info.long} · ${info.semitones} semitone${info.semitones === 1 ? '' : 's'}`
+          : 'Enter two notes',
         () => {
           const instrument = soundFor(values, ctx);
           const step = 0.55;

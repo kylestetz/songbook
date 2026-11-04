@@ -203,13 +203,16 @@ export function InstrumentPanel({
   const midis = ordered(picks).map((p) => p.midi);
   const chordsMode = b.mode === 'chords';
   const chordMode = b.mode === 'chord' || chordsMode;
+  /** Chords are stored as the exact notes played, not just a name. */
+  const voicingMode = chordsMode || (b.mode === 'chord' && !!b.voicing);
   const fretsOf = (ps: Pick[]): Frets => tuning.notes.map((_, s) => {
     const p = ps.find((x) => x.string === s);
     return p ? p.midi - Note.midi(tuning.notes[s])! : null;
   });
   /**
-   * A chord in a progression is a voicing: exactly the notes played, on the
-   * strings they were played on. Its name is only a label on top.
+   * A played chord (in a progression, or a chord symbol that keeps its
+   * voicing) is exactly the notes played, on the strings they were played on.
+   * Its name is only a label on top.
    */
   const voicingToken = (ps: Pick[], name: string) => {
     const onStrings = tab === 'guitar' && ps.every((p) => p.string !== undefined);
@@ -257,20 +260,27 @@ export function InstrumentPanel({
     !!parseChord(storedSymbol) &&
     (chordNames.includes(storedSymbol) || !edited || (!!parseExplicitChord(storedSymbol) && sameNotes(storedSymbol)));
   // A chord typed by name keeps that name until its notes are changed.
-  const typedName =
-    chordsMode && !edited && slotIndex !== 'new' && !parseExplicitChord(tokens[slotIndex].text)
-      ? parseProgression(value, values.key)[slotIndex]?.symbol ?? null
-      : null;
+  const typedName = edited
+    ? null
+    : chordsMode
+      ? slotIndex !== 'new' && !parseExplicitChord(tokens[slotIndex].text)
+        ? parseProgression(value, values.key)[slotIndex]?.symbol ?? null
+        : null
+      : voicingMode && parseChord(value) && !parseExplicitChord(value)
+        ? value.trim()
+        : null;
   const voicingName = labelDraft ?? typedName ?? bestChordName(midis);
-  const shownSymbol = chordsMode
+  const shownSymbol = voicingMode
     ? midis.length
-      ? voicingToken(picks, voicingName)
+      ? !chordsMode && storedFits && parseExplicitChord(value)
+        ? value
+        : voicingToken(picks, voicingName)
       : null
     : storedFits
       ? storedSymbol
       : chordNames[0] ?? (chordMode ? asNotes(midis) : null);
   const shownExplicit = shownSymbol ? parseExplicitChord(shownSymbol) : null;
-  const guesses = chordMode && shownExplicit ? [...(chordsMode ? chordNames : []), ...guessChordNames(midis)] : [];
+  const guesses = chordMode && shownExplicit ? [...(voicingMode ? chordNames : []), ...guessChordNames(midis)] : [];
   // In a notes field, only name a chord once one has been chosen.
   const readoutSymbol = b.mode === 'notes' ? (notesChord && chordNames.includes(notesChord) ? notesChord : null) : shownSymbol;
   const choices = b.mode === 'notes' ? chordNames.filter(readsAsChord) : chordNames;
@@ -312,6 +322,15 @@ export function InstrumentPanel({
         commit({ ...values, [field.key]: list.join(' ') });
         return;
       case 'chord': {
+        if (b.voicing) {
+          if (!ps.length) return;
+          const ms = ps.map((p) => p.midi);
+          // Keep the current name while it still fits the notes.
+          const current = parseExplicitChord(value)?.label ?? value.trim();
+          const name = labelDraft ?? (detectChords(ms).includes(current) ? current : bestChordName(ms));
+          commit(chordValues(ps, voicingToken(ps, name)));
+          return;
+        }
         const symbol = symbolFor(ps.map((p) => p.midi), value);
         if (!symbol) return;
         commit(chordValues(ps, symbol));
@@ -373,6 +392,10 @@ export function InstrumentPanel({
     setLabelDraft(label);
     if (chordsMode) {
       if (slotIndex !== 'new' && picks.length) replaceToken(slotIndex, voicingToken(picks, label));
+      return;
+    }
+    if (voicingMode) {
+      if (picks.length) commit(chordValues(picks, voicingToken(picks, label)));
       return;
     }
     if (shownExplicit) chooseName(formatExplicitChord(label, shownExplicit.notes));
@@ -451,6 +474,7 @@ export function InstrumentPanel({
           )}
           <Readout
             mode={b.mode}
+            voicing={voicingMode}
             midis={midis}
             symbol={readoutSymbol}
             spell={spell}
@@ -471,6 +495,7 @@ export function InstrumentPanel({
 
 function Readout({
   mode,
+  voicing,
   midis,
   symbol,
   spell,
@@ -484,6 +509,8 @@ function Readout({
   onAdd,
 }: {
   mode: InstrumentBinding['mode'];
+  /** Chords keep the exact notes played, octaves included */
+  voicing: boolean;
   midis: number[];
   /** The chord name to show */
   symbol: string | null;
@@ -550,10 +577,16 @@ function Readout({
     // chord / chords
     const current = symbol;
     body = empty ? (
-      hint(mode === 'chords' && isNewSlot ? 'Play a voicing, then add it to the progression. It is kept exactly as played.' : 'Play the notes of a chord and it will be named for you.')
+      hint(
+        mode === 'chords' && isNewSlot
+          ? 'Play a voicing, then add it to the progression. It is kept exactly as played.'
+          : voicing
+            ? 'Play a chord and it will be named for you. The notes are kept exactly as played.'
+            : 'Play the notes of a chord and it will be named for you.',
+      )
     ) : asNotes || !current ? (
       <>
-        <strong className="instrument-name">{(mode === 'chords' ? names : pcs).join(' ')}</strong>
+        <strong className="instrument-name">{(voicing ? names : pcs).join(' ')}</strong>
         <input
           className="input input-sm instrument-label"
           value={asNotes?.label ?? ''}
@@ -622,26 +655,32 @@ function PianoInput({ picks, spell, onKey }: { picks: number[]; spell(midi: numb
   for (let m = low; m <= high; m++) if (!isBlack(m)) whites.push(m);
   const width = whites.length * W;
 
+  // Same drawing as the keyboard widget (core/widgets/keyboard.ts), reusing its
+  // .mn-key classes: shared key edges, small radii, round marks.
+  const labelClass = (label: string, small: boolean) =>
+    ['mn-key-label', small ? 'mn-key-label-sm' : '', [...label].length > 2 ? 'is-long' : ''].filter(Boolean).join(' ');
   const keys: React.ReactNode[] = [];
   const blacks: React.ReactNode[] = [];
   let x = 0;
   for (let m = low; m <= high; m++) {
     const on = picked.has(m);
     const label = on ? displayNote(spell(m), { octave: false }) : '';
+    const cls = `mn-key ${isBlack(m) ? 'mn-key-black' : 'mn-key-white'} ii-key${on ? ' is-marked is-filled' : ''}`;
     if (!isBlack(m)) {
+      const cx = x + 0.5 + W / 2;
       keys.push(
-        <g key={m} className={`ii-key ii-key-white${on ? ' is-on' : ''}`} onMouseDown={(e) => (e.preventDefault(), onKey(m))}>
-          <rect x={x + 0.5} y={0.5} width={W - 1} height={H} rx={4} />
+        <g key={m} className={cls} onMouseDown={(e) => (e.preventDefault(), onKey(m))}>
+          <rect x={x + 0.5} y={0.5} width={W} height={H} rx={1.5} />
           {on ? (
             <>
-              <circle className="ii-key-dot" cx={x + W / 2} cy={H - 18} r={11} />
-              <text className="ii-key-dot-label" x={x + W / 2} y={H - 18}>
+              <circle className="mn-key-dot" cx={cx} cy={H - 18} r={11} />
+              <text className={labelClass(label, false)} x={cx} y={H - 18} textAnchor="middle" dominantBaseline="central">
                 {label}
               </text>
             </>
           ) : (
             m % 12 === 0 && (
-              <text className="ii-key-c" x={x + W / 2} y={H - 10}>
+              <text className="mn-key-c" x={cx} y={H - 10} textAnchor="middle">
                 C{Math.floor(m / 12) - 1}
               </text>
             )
@@ -650,14 +689,14 @@ function PianoInput({ picks, spell, onKey }: { picks: number[]; spell(midi: numb
       );
       x += W;
     } else {
-      const bx = x - BW / 2;
+      const bx = x - BW / 2 + 0.5;
       blacks.push(
-        <g key={m} className={`ii-key ii-key-black${on ? ' is-on' : ''}`} onMouseDown={(e) => (e.preventDefault(), onKey(m))}>
-          <rect x={bx} y={0.5} width={BW} height={BH} rx={3} />
+        <g key={m} className={cls} onMouseDown={(e) => (e.preventDefault(), onKey(m))}>
+          <rect x={bx} y={0.5} width={BW} height={BH} rx={1} />
           {on && (
             <>
-              <circle className="ii-key-dot" cx={bx + BW / 2} cy={BH - 14} r={8} />
-              <text className="ii-key-dot-label is-small" x={bx + BW / 2} y={BH - 14}>
+              <circle className="mn-key-dot" cx={bx + BW / 2} cy={BH - 14} r={8.5} />
+              <text className={labelClass(label, true)} x={bx + BW / 2} y={BH - 14} textAnchor="middle" dominantBaseline="central">
                 {label}
               </text>
             </>

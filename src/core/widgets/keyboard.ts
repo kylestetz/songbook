@@ -2,8 +2,8 @@ import { s } from './dom';
 
 export interface KeyMark {
   label?: string;
-  /** "root" is emphasized; "tone" is a regular highlight */
-  tone?: 'root' | 'tone';
+  /** "filled" draws a solid dot; "tone" (default) an outlined one */
+  tone?: 'filled' | 'tone';
 }
 
 export interface KeyboardOptions {
@@ -62,6 +62,11 @@ export function keyboard(opts: KeyboardOptions) {
   svg.append(whiteLayer, blackLayer);
 
   const mark = opts.marks ?? new Map<number, KeyMark>();
+  /** A round marker centred on (cx, cy). */
+  const dot = (cx: number, cy: number, size: number) => s('circle', { class: 'mn-key-dot', cx, cy, r: size / 2 });
+  /** Labels of three or more characters (♭13, ♯11) get a smaller size to fit the circle. */
+  const labelClass = (label: string, small: boolean) =>
+    ['mn-key-label', small ? 'mn-key-label-sm' : '', [...label].length > 2 ? 'is-long' : ''].filter(Boolean).join(' ');
   let x = 0;
   for (let m = from; m <= to; m++) {
     const black = isBlack(m);
@@ -71,12 +76,12 @@ export function keyboard(opts: KeyboardOptions) {
       .join(' ');
     const g = s('g', { class: cls, 'data-midi': m });
     if (!black) {
-      g.append(s('rect', { x: x + 0.5, y: 0.5, width: W, height: H, rx: 3 }));
+      g.append(s('rect', { x: x + 0.5, y: 0.5, width: W, height: H, rx: 1.5 }));
       if (mk?.label) {
-        g.append(s('circle', { class: 'mn-key-dot', cx: x + 0.5 + W / 2, cy: H - 14, r: 9 }));
-        g.append(s('text', { x: x + 0.5 + W / 2, y: H - 14, 'text-anchor': 'middle', 'dominant-baseline': 'central' }, mk.label));
+        g.append(dot(x + 0.5 + W / 2, H - 14, 18));
+        g.append(s('text', { class: labelClass(mk.label, false), x: x + 0.5 + W / 2, y: H - 14, 'text-anchor': 'middle', 'dominant-baseline': 'central' }, mk.label));
       } else if (mk) {
-        g.append(s('circle', { class: 'mn-key-dot', cx: x + 0.5 + W / 2, cy: H - 14, r: 5 }));
+        g.append(dot(x + 0.5 + W / 2, H - 14, 9));
       } else if (m % 12 === 0) {
         g.append(s('text', { class: 'mn-key-c', x: x + 0.5 + W / 2, y: H - 8, 'text-anchor': 'middle' }, `C${Math.floor(m / 12) - 1}`));
       }
@@ -84,11 +89,11 @@ export function keyboard(opts: KeyboardOptions) {
       x += W;
     } else {
       const bx = x - BW / 2 + 0.5;
-      g.append(s('rect', { x: bx, y: 0.5, width: BW, height: BH, rx: 2 }));
+      g.append(s('rect', { x: bx, y: 0.5, width: BW, height: BH, rx: 1 }));
       if (mk) {
-        g.append(s('circle', { class: 'mn-key-dot', cx: bx + BW / 2, cy: BH - 11, r: mk.label ? 6.5 : 4 }));
+        g.append(dot(bx + BW / 2, BH - 11, mk.label ? 13 : 7));
         if (mk.label)
-          g.append(s('text', { x: bx + BW / 2, y: BH - 11, 'text-anchor': 'middle', 'dominant-baseline': 'central', class: 'mn-key-label-sm' }, mk.label));
+          g.append(s('text', { class: labelClass(mk.label, true), x: bx + BW / 2, y: BH - 11, 'text-anchor': 'middle', 'dominant-baseline': 'central' }, mk.label));
       }
       blackLayer.append(g);
     }

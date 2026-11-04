@@ -7,6 +7,7 @@ import {
   getTuning,
   guitarVoicing,
   parseChord,
+  parseExplicitChord,
   parseFrets,
   parseKey,
   parseNote,
@@ -16,7 +17,7 @@ import {
 } from '../../core/theory';
 import { getAudioEngine } from '../../core/audio';
 import type { FieldOption, FieldSpec, WidgetValues } from '../../core/widgets';
-import { rollRange } from '../../core/widgets';
+import { rollKeys, rollLineClass, rollRange } from '../../core/widgets';
 
 export interface FieldProps {
   field: FieldSpec;
@@ -141,7 +142,10 @@ export function NoteField({ field, value, onChange, autoFocus }: FieldProps) {
 
 export function ChordField({ field, value, onChange, autoFocus }: FieldProps) {
   const c = parseChord(value);
-  const rootMatch = /^([A-G](?:#|b)?)(.*)$/.exec(value.trim());
+  // A played voicing ("Am7[A2 G3 C4 E4]") is named by its label. Picking
+  // another root or quality makes it a new chord with default notes.
+  const explicit = parseExplicitChord(value);
+  const rootMatch = /^([A-G](?:#|b)?)(.*)$/.exec(explicit ? explicit.label : value.trim());
   const root = rootMatch?.[1] ?? 'C';
   const suffix = rootMatch?.[2] ?? '';
   return (
@@ -164,6 +168,7 @@ export function ChordField({ field, value, onChange, autoFocus }: FieldProps) {
         </div>
       </div>
       {value && !c ? <Hint ok={false}>Unknown chord symbol</Hint> : null}
+      {explicit ? <Hint ok>Plays these exact notes: {explicit.notes.map(pretty).join(' ')}</Hint> : null}
     </div>
   );
 }
@@ -306,30 +311,24 @@ export function RollField({ value, values, onChange }: FieldProps) {
           onMouseUp={onUp}
           onMouseLeave={onUp}
         >
-          {Array.from({ length: rows }, (_, i) => {
-            const m = range.hi - i;
-            return (
-              <g key={m}>
-                <rect className={`mn-roll-row${black(m) ? ' is-black' : ''}`} x={LW} y={i * RH} width={steps * CW} height={RH} />
-                <rect className={`mn-roll-key${black(m) ? ' is-black' : ''}`} x={0.5} y={i * RH + 0.5} width={LW - 4} height={RH - 1} rx={2} />
-                {m % 12 === 0 && (
-                  <text className="mn-roll-label" x={4} y={i * RH + RH / 2} dominantBaseline="central">
-                    C{Math.floor(m / 12) - 1}
-                  </text>
-                )}
-              </g>
-            );
-          })}
-          {Array.from({ length: steps + 1 }, (_, i) => (
-            <line
-              key={i}
-              className={i % (perBeat * 4) === 0 ? 'mn-roll-bar' : i % perBeat === 0 ? 'mn-roll-beat' : 'mn-roll-step'}
-              x1={LW + i * CW}
-              x2={LW + i * CW}
-              y1={0}
-              y2={height}
-            />
+          {Array.from({ length: rows }, (_, i) => (
+            <rect key={i} className={`mn-roll-row${black(range.hi - i) ? ' is-black' : ''}`} x={LW + 0.5} y={i * RH + 0.5} width={steps * CW} height={RH} />
           ))}
+          {Array.from({ length: Math.max(0, steps - 1) }, (_, j) => {
+            const x = LW + (j + 1) * CW + 0.5;
+            return <line key={j} className={rollLineClass(j + 1, perBeat)} x1={x} x2={x} y1={0.5} y2={height + 0.5} />;
+          })}
+          <rect className="mn-roll-frame" x={LW + 0.5} y={0.5} width={steps * CW} height={height} />
+          {rollKeys(range.lo, range.hi, RH, LW).map((k) => (
+            <rect key={k.midi} className={`mn-roll-key${k.black ? ' is-black' : ''}`} x={k.x} y={k.y} width={k.width} height={k.height} rx={k.black ? 1 : 0} />
+          ))}
+          {Array.from({ length: rows }, (_, i) =>
+            (range.hi - i) % 12 === 0 ? (
+              <text key={i} className="mn-roll-label" x={LW - 3} y={i * RH + RH / 2 + 0.5} textAnchor="end" dominantBaseline="central">
+                C{Math.floor((range.hi - i) / 12) - 1}
+              </text>
+            ) : null,
+          )}
           {shown.map((n, i) => {
             const m = Note.midi(n.pitch);
             if (m == null || m < range.lo || m > range.hi) return null;
@@ -337,9 +336,9 @@ export function RollField({ value, values, onChange }: FieldProps) {
               <rect
                 key={i}
                 className={`mn-roll-note${n === draft ? ' is-draft' : ''}`}
-                x={LW + n.start * CW + 1}
-                y={(range.hi - m) * RH + 1}
-                width={Math.max(1, Math.min(n.length, steps - n.start) * CW - 2)}
+                x={LW + n.start * CW + 2}
+                y={(range.hi - m) * RH + 1.5}
+                width={Math.max(1, Math.min(n.length, steps - n.start) * CW - 3)}
                 height={RH - 2}
                 rx={3}
               />

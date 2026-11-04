@@ -113,7 +113,7 @@ describe('playing a progression on the fretboard', () => {
   it('keeps octaves when played on the piano, without a fingering', () => {
     p = mount({ chords: '' }, 'piano');
     const key = (i: number) =>
-      act(() => void p.el.querySelectorAll('.ii-key-white')[i].dispatchEvent(new MouseEvent('mousedown', { bubbles: true })));
+      act(() => void p.el.querySelectorAll('.ii-key.mn-key-white')[i].dispatchEvent(new MouseEvent('mousedown', { bubbles: true })));
     key(7); // C4
     key(9); // E4
     key(11); // G4

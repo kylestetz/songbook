@@ -49,6 +49,10 @@
   --mn-accent-soft: color-mix(in srgb, var(--mn-accent) 14%, transparent);
   --mn-accent-softer: color-mix(in srgb, var(--mn-accent) 7%, transparent);
   --mn-selection: color-mix(in srgb, var(--mn-accent) 22%, transparent);
+  --mn-accent-line: color-mix(in srgb, var(--mn-accent) 45%, transparent);
+
+  /* Tight corners for small controls inside widgets */
+  --mn-radius-tight: calc(var(--mn-radius-xs) * 0.6);
   --mn-focus-ring: 0 0 0 3px var(--mn-accent-soft);
 
   /* Neutral interaction states: a wash of the text color over any surface */

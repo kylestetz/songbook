@@ -226,7 +226,8 @@ button {
   scroll-padding: 80px 0;
 }
 .editor-column {
-  max-width: 740px;
+  /* 720px of text plus the side padding */
+  max-width: calc(720px + 2 * 56px);
   margin: 0 auto;
   padding: 28px 56px 45vh;
 }
@@ -251,7 +252,6 @@ button {
   height: 6px;
   border-radius: 50%;
   background: var(--mn-border-strong);
-  transition: background-color 0.2s ease;
 }
 .status-dot.is-saving {
   background: var(--mn-faint);
@@ -635,10 +635,23 @@ button {
   border-radius: var(--mn-radius-xs);
   padding: 6px 9px;
   outline: none;
-  transition: border-color 0.12s ease, box-shadow 0.12s ease;
 }
 textarea.input {
   resize: vertical;
+}
+/* Draw our own caret: the native one adds uneven inner padding. */
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  padding-right: 26px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--mn-muted) 50%),
+    linear-gradient(135deg, var(--mn-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 14px) 50%,
+    calc(100% - 10px) 50%;
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
 }
 .input:focus,
 .select:focus {
@@ -656,8 +669,11 @@ textarea.input {
 }
 .select-sm {
   width: auto;
-  padding: 4px 6px;
+  padding: 4px 20px 4px 7px;
   font-size: 12px;
+  background-position:
+    calc(100% - 11px) 50%,
+    calc(100% - 7px) 50%;
 }
 .mono {
   font-family: var(--mn-font-mono);
@@ -759,7 +775,6 @@ textarea.input {
   border-radius: 999px;
   background: var(--mn-border-strong);
   position: relative;
-  transition: background-color 0.15s ease;
   flex-shrink: 0;
 }
 .toggle-track::after {
@@ -1154,66 +1169,44 @@ textarea.input {
   user-select: none;
 }
 .ii-shift {
-  border: 1px solid var(--mn-border);
+  border: none;
   background: transparent;
-  border-radius: var(--mn-radius-xs);
-  width: 26px;
+  border-radius: var(--mn-radius-tight);
+  width: 22px;
   font-size: 18px;
   color: var(--mn-muted);
 }
 .ii-shift:hover:not(:disabled) {
-  background: var(--mn-surface);
+  background: var(--mn-hover);
   color: var(--mn-text);
 }
 .ii-shift:disabled {
   opacity: 0.35;
 }
+/* Keys are drawn with the keyboard widget's .mn-key styles; these add the
+   input's hover state and size the labels for the larger keys. */
 .ii-key {
   cursor: pointer;
 }
-.ii-key rect {
-  stroke: var(--mn-key-white-edge);
-  stroke-width: 1;
-  transition: fill 0.08s ease;
-}
-.ii-key-white rect {
-  fill: var(--mn-key-white);
-}
-.ii-key-white:hover rect {
+.ii-key.mn-key-white:hover > rect:first-child {
   fill: color-mix(in srgb, var(--mn-key-mark) 8%, var(--mn-key-white));
 }
-.ii-key-black rect {
-  fill: var(--mn-key-black);
-  stroke: var(--mn-key-black);
-}
-.ii-key-black:hover rect {
+.ii-key.mn-key-black:hover > rect:first-child {
   fill: color-mix(in srgb, var(--mn-key-mark) 30%, var(--mn-key-black));
 }
-.ii-key-white.is-on rect {
-  fill: color-mix(in srgb, var(--mn-key-mark) 16%, var(--mn-key-white));
+.ii-key.mn-key .mn-key-label {
+  font-size: 12px;
 }
-.ii-key-black.is-on rect {
-  fill: color-mix(in srgb, var(--mn-key-mark) 60%, var(--mn-key-black));
+.ii-key.mn-key .mn-key-label.is-long {
+  font-size: 9.5px;
 }
-.ii-key-dot {
-  fill: var(--mn-key-mark);
+.ii-key.mn-key .mn-key-label-sm {
+  font-size: 9.5px;
 }
-.ii-key text {
-  text-anchor: middle;
-  dominant-baseline: central;
-  font-family: var(--mn-font-label);
-  font-weight: 650;
-  pointer-events: none;
+.ii-key.mn-key .mn-key-label-sm.is-long {
+  font-size: 7.5px;
 }
-.ii-key-dot-label {
-  fill: var(--mn-on-key-mark);
-  font-size: 11px;
-}
-.ii-key-dot-label.is-small {
-  font-size: 8.5px;
-}
-.ii-key-c {
-  fill: var(--mn-faint);
+.ii-key.mn-key .mn-key-c {
   font-size: 10px;
 }
 
@@ -1269,7 +1262,6 @@ textarea.input {
 .ii-cell-hover {
   fill: var(--mn-accent);
   opacity: 0;
-  transition: opacity 0.08s ease;
 }
 .ii-cell:hover .ii-cell-hover {
   opacity: 0.22;

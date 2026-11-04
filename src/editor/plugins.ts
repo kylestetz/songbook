@@ -1,5 +1,5 @@
 import type { Node as PMNode, Schema } from 'prosemirror-model';
-import { Plugin, PluginKey, type EditorState } from 'prosemirror-state';
+import { NodeSelection, Plugin, PluginKey, type EditorState } from 'prosemirror-state';
 import { Decoration, DecorationSet, type EditorView } from 'prosemirror-view';
 import { highlightRanges, type HighlightRange } from '../core/publish/highlight';
 
@@ -50,6 +50,32 @@ export function highlightPlugin() {
     props: {
       decorations(state) {
         return this.getState(state);
+      },
+    },
+  });
+}
+
+/**
+ * Widgets can't show the native text selection (they're user-select: none),
+ * so mark the ones that fall inside a text range selection.
+ */
+export function widgetSelectionPlugin() {
+  return new Plugin({
+    props: {
+      decorations(state) {
+        const { selection, doc } = state;
+        if (selection.empty || selection instanceof NodeSelection) return null;
+        const decos: Decoration[] = [];
+        for (const { $from, $to } of selection.ranges) {
+          doc.nodesBetween($from.pos, $to.pos, (node, pos) => {
+            if (node.type.name === 'widget_inline' || node.type.name === 'widget_block') {
+              decos.push(Decoration.node(pos, pos + node.nodeSize, { class: 'is-in-selection' }));
+              return false;
+            }
+            return true;
+          });
+        }
+        return decos.length ? DecorationSet.create(doc, decos) : null;
       },
     },
   });

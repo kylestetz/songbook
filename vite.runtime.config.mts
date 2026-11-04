@@ -8,7 +8,9 @@ import { defineConfig } from 'vite';
 export default defineConfig({
   build: {
     outDir: resolve(import.meta.dirname, 'build/runtime'),
-    emptyOutDir: true,
+    // File names are fixed, so there's nothing stale to clear; emptying would also
+    // briefly delete the files the app imports while `watch:runtime` rebuilds.
+    emptyOutDir: false,
     cssCodeSplit: false,
     lib: {
       entry: resolve(import.meta.dirname, 'src/core/runtime/index.ts'),

@@ -44,10 +44,11 @@
     "yaml": "^2.9.1"
   },
   "scripts": {
-    "dev": "npm run build:runtime && electron-vite dev",
+    "dev": "npm run build:runtime && (npm run watch:runtime & electron-vite dev)",
     "start": "electron-vite preview",
     "build": "npm run build:runtime && electron-vite build",
     "build:runtime": "vite build --config vite.runtime.config.mts",
+    "watch:runtime": "vite build --config vite.runtime.config.mts --watch --logLevel warn",
     "web": "npm run build:runtime && vite --config vite.web.config.mts",
     "build:web": "npm run build:runtime && vite build --config vite.web.config.mts",
     "dist": "npm run build && electron-builder --mac",

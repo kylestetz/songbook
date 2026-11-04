@@ -51,7 +51,7 @@ export const pianoWidget: WidgetDefinition = {
     if (chordSymbol) {
       title = chordSymbolEl(chordSymbol);
     }
-    const { el: frame, body, actions } = card({ kind: 'piano', title, caption: values.caption });
+    const { el: frame, body, actions } = card({ kind: 'piano', label: 'Piano', title, caption: values.caption });
     if (!notes.length) {
       body.append(errorBox(`Couldn't read "${input}" as a chord or notes`));
       el.append(frame);
@@ -60,7 +60,6 @@ export const pianoWidget: WidgetDefinition = {
     const midis = notes.map((n) => Note.midi(n)!);
     const labels = values.labels || 'notes';
     const marks = new Map<number, KeyMark>();
-    const rootMidi = chord ? Math.min(...midis.filter((m) => Note.chroma(chord.root) === m % 12)) : midis[0];
     notes.forEach((n, i) => {
       let label: string | undefined;
       if (labels === 'notes') label = displayNote(n, { octave: false });
@@ -69,7 +68,7 @@ export const pianoWidget: WidgetDefinition = {
         const ivl = Interval.distance(root, n);
         label = degreeLabel(ivl.startsWith('-') ? Interval.invert(ivl.slice(1)) : ivl).replace(/^(\d+)$/, (d) => (d === '8' ? '1' : d));
       }
-      marks.set(midis[i], { label, tone: midis[i] === rootMidi ? 'root' : 'tone' });
+      marks.set(midis[i], { label, tone: 'filled' });
     });
     const instrument = () => soundFor(values, ctx);
     const kb = keyboard({

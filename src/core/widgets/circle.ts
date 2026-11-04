@@ -25,8 +25,7 @@ export const circleWidget: WidgetDefinition = {
     // Index of the relative major in the circle
     const majorTonic = key.minor ? Note.transpose(key.tonic, '3m') : key.tonic;
     const idx = CIRCLE_MAJOR.findIndex((k) => Note.chroma(k) === Note.chroma(majorTonic));
-    const { el: frame, body } = card({ kind: 'circle', title: '', caption: values.caption });
-    frame.querySelector('.mn-card-header')?.remove();
+    const { el: frame, body } = card({ kind: 'circle', label: 'Circle of fifths', meta: prettyAccidentals(key.label), caption: values.caption });
     const size = 300;
     const c = size / 2;
     const R1 = 142;
@@ -57,7 +56,6 @@ export const circleWidget: WidgetDefinition = {
           class: `mn-circle-seg is-${ring}${inKey ? ' is-in-key' : ''}${isTonic ? ' is-tonic' : ''}`,
           'data-interactive': '',
           role: 'button',
-          tabindex: '-1',
         });
         const [r0, r1] = ring === 'major' ? [R2, R1] : [R3, R2];
         g.append(s('path', { d: wedge(r0, r1, i) }));

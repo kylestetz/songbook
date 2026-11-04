@@ -45,6 +45,29 @@ describe('scale widget', () => {
   });
 });
 
+describe('scale pattern widget', () => {
+  it('shows the steps and plays them up from C', () => {
+    const el = document.createElement('span');
+    renderWidget(el, 'steps', valuesFromDirective({ name: 'steps', label: 'wwh whww h', attrs: {} }), ctx);
+    expect(el.querySelector('.mn-steps-list')!.textContent).toBe('W W H W H W W H');
+    expect(el.querySelector('.mn-pill')!.getAttribute('title')).toBe('Play C D E F G G♯ A♯ C C♯');
+    renderWidget(el, 'steps', { pattern: 'WXH' }, ctx);
+    expect(el.querySelector('.mn-pill.is-invalid')).not.toBeNull();
+  });
+});
+
+describe('interval widget', () => {
+  it('shows either the two notes or the interval name', () => {
+    const el = document.createElement('span');
+    renderWidget(el, 'interval', { notes: 'C4 F4' }, ctx);
+    expect(el.querySelector('.mn-pill')!.textContent).toBe('C4→F4');
+    renderWidget(el, 'interval', { notes: 'C4 F4', show: 'name' }, ctx);
+    expect(el.querySelector('.mn-pill')!.textContent).toBe('perfect fourth');
+    renderWidget(el, 'interval', { notes: 'E C', show: 'name' }, ctx);
+    expect(el.querySelector('.mn-pill')!.textContent).toBe('minor sixth');
+  });
+});
+
 describe('values <-> directive', () => {
   it('omits defaults but keeps required fields', () => {
     const d = directiveFromValues('scale', { root: 'D', mode: 'dorian', octave: '4', labels: 'degrees', direction: 'up' });
@@ -78,5 +101,16 @@ describe('chords written as notes', () => {
     const src = `${serializeDirective('block', directiveFromValues('progression', { chords }))}\n`;
     const parsed = parseDirectiveAt(src, 2)!.directive;
     expect(valuesFromDirective(parsed).chords).toBe(chords);
+  });
+  it('a chord symbol plays the exact voicing it was played with', () => {
+    const played: string[][] = [];
+    const audio = Object.assign(new AudioEngine(), { play: (notes: string[]) => void played.push(notes) });
+    const el = document.createElement('span');
+    renderWidget(el, 'chord', { symbol: 'Am7[A2 G3 C4 E4]', octave: '3' }, { ...ctx, audio });
+    expect(el.textContent).toBe('Am7');
+    (el.querySelector('.mn-pill') as HTMLElement).click();
+    expect(played).toEqual([['A2', 'G3', 'C4', 'E4']]);
+    const src = `${serializeDirective('inline', directiveFromValues('chord', { symbol: 'Am7[A2 G3 C4 E4 @x0x555]', octave: '3' }))} `;
+    expect(valuesFromDirective(parseDirectiveAt(src, 1)!.directive).symbol).toBe('Am7[A2 G3 C4 E4 @x0x555]');
   });
 });

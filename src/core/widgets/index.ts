@@ -2,6 +2,7 @@ import type { Directive } from '../markdown/directive';
 import { h } from './dom';
 import { chordWidget, intervalWidget, notesWidget, noteWidget } from './inline';
 import { scaleWidget } from './scale';
+import { stepsWidget } from './steps';
 import { progressionWidget } from './progression';
 import { guitarWidget } from './guitar';
 import { pianoWidget } from './piano';
@@ -10,7 +11,7 @@ import { circleWidget } from './circle';
 import type { WidgetContext, WidgetDefinition, WidgetInstance, WidgetValues } from './types';
 
 export * from './types';
-export { rollGrid, rollRange, GRID_OPTIONS } from './pianoroll';
+export { rollGrid, rollKeys, rollLineClass, rollRange, GRID_OPTIONS } from './pianoroll';
 
 /**
  * The widget registry. Adding a widget = writing a WidgetDefinition and
@@ -22,6 +23,7 @@ export const WIDGETS: WidgetDefinition[] = [
   chordWidget,
   intervalWidget,
   scaleWidget,
+  stepsWidget,
   progressionWidget,
   guitarWidget,
   pianoWidget,

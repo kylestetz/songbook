@@ -38,6 +38,12 @@ export interface InstrumentBinding {
   frets?: string;
   /** Field holding the octave used to voice chords / octave-less notes */
   octave?: string;
+  /**
+   * chord mode: keep the exact notes played (and the strings they were played
+   * on) rather than just the chord's name, e.g. "Am7[A2 G3 C4 E4]". A chord
+   * typed by name still gets default notes.
+   */
+  voicing?: boolean;
 }
 
 export interface FieldSpec {

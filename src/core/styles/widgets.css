@@ -1,73 +1,71 @@
-/* ---------- Inline pills ---------- */
+/*
+ * Widgets: compact and quiet so they sit in the flow of reading.
+ * Inline widgets are faintly tinted tokens; block widgets are a single
+ * outlined frame with a label strip. Nothing gets its own background or
+ * shadow; the accent marks only what you can play or what is playing.
+ */
+
+/* ---------- Inline tokens ---------- */
 .mn-pill {
   display: inline-flex;
   align-items: baseline;
-  gap: 0.18em;
-  padding: 0.04em 0.5em 0.06em;
-  margin: 0 0.06em;
-  border-radius: 999px;
-  background: var(--mn-accent-soft);
+  padding: 0 0.32em;
+  margin: 0 0.04em;
+  border-radius: var(--mn-radius-tight);
+  background: var(--mn-accent-softer);
   color: var(--mn-accent-strong);
   font-family: var(--mn-font-label);
   font-weight: 600;
-  font-size: 0.92em;
+  font-size: 0.86em;
   line-height: 1.45;
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
   white-space: nowrap;
   vertical-align: baseline;
-  transition: background-color 0.15s ease, transform 0.12s ease, box-shadow 0.15s ease;
 }
 .mn-pill:hover {
-  background: color-mix(in srgb, var(--mn-accent) 20%, transparent);
+  background: var(--mn-accent-soft);
 }
 .mn-pill:focus-visible {
-  outline: 2px solid var(--mn-accent);
+  outline: 1.5px solid var(--mn-accent);
   outline-offset: 1px;
 }
 .mn-pill.is-active {
   animation: mn-pulse 0.5s ease-out;
 }
 .mn-pill.is-invalid {
-  background: var(--mn-danger-soft);
+  background: color-mix(in srgb, var(--mn-danger) 9%, transparent);
   color: var(--mn-danger);
   cursor: default;
-}
-.mn-pill-glyph {
-  font-size: 0.86em;
-  opacity: 0.7;
-  font-weight: 500;
 }
 .mn-notes-sep {
   opacity: 0.45;
   font-weight: 400;
+  /* The pill is inline-flex, which would otherwise collapse a bare space. */
+  white-space: pre;
+  margin: 0 0.08em;
+}
+.mn-pill.is-chord .mn-notes-sep {
+  margin: 0 0.18em;
 }
 .mn-notes-item.is-current,
-.mn-scale-item.is-current {
+.mn-scale-item.is-current,
+.mn-steps-item.is-current {
   color: var(--mn-text);
 }
-.mn-scale-name {
-  font-weight: 650;
+.mn-scale-tones {
+  font-weight: 500;
 }
 .mn-interval-arrow,
 .mn-scale-arrow {
   opacity: 0.55;
   font-weight: 400;
   font-size: 0.85em;
-}
-.mn-interval-name {
-  margin-left: 0.25em;
-  padding: 0 0.4em;
-  border-radius: 999px;
-  background: var(--mn-accent);
-  color: var(--mn-on-accent);
-  font-size: 0.78em;
-  line-height: 1.5;
-  align-self: center;
+  margin: 0 0.3em;
 }
 
-/* Chord symbols: root large, quality as superscript */
+/* Chord symbols: root large, quality on the baseline, extensions raised */
 .mn-chord-root {
   font-weight: inherit;
 }
@@ -89,126 +87,129 @@
 .mn-pill.mn-chord {
   font-family: var(--mn-font-heading);
   font-weight: 650;
-  border-radius: var(--mn-radius-xs);
 }
 
 @keyframes mn-pulse {
   0% {
-    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mn-accent) 45%, transparent);
-    transform: scale(1);
-  }
-  30% {
-    transform: scale(1.06);
+    background: color-mix(in srgb, var(--mn-accent) 18%, transparent);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--mn-accent) 22%, transparent);
   }
   100% {
-    box-shadow: 0 0 0 10px transparent;
-    transform: scale(1);
+    box-shadow: 0 0 0 5px transparent;
   }
 }
 
-/* ---------- Block cards ---------- */
+/* ---------- Block frame ---------- */
 .mn-card {
   margin: 0;
-  background: var(--mn-card);
-  border: 1px solid var(--mn-border);
-  border-radius: var(--mn-radius);
-  box-shadow: var(--mn-shadow);
-  padding: 14px 16px 16px;
   font-family: var(--mn-font-ui);
   font-size: 15px;
   line-height: 1.4;
   user-select: none;
   -webkit-user-select: none;
 }
+.mn-card-box {
+  border: 1px solid var(--mn-border-strong);
+  border-radius: var(--mn-radius-xs);
+  overflow: hidden;
+}
 .mn-card-header {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 12px;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  box-sizing: border-box;
+  padding: 0 6px 0 12px;
+  border-bottom: 1px solid var(--mn-border);
 }
-.mn-card-titles {
-  min-width: 0;
+.mn-card-label,
+.mn-card-meta {
+  font-family: var(--mn-font-label);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--mn-muted);
+}
+.mn-card-meta {
+  color: var(--mn-text);
 }
 .mn-card-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-family: var(--mn-font-heading);
+  font-size: 14px;
   font-weight: 650;
-  font-size: 18px;
-  letter-spacing: -0.01em;
-  line-height: 1.25;
-}
-.mn-card-subtitle {
-  color: var(--mn-muted);
-  font-size: 13px;
-  margin-top: 2px;
-  white-space: pre-wrap;
+  line-height: 1.2;
 }
 .mn-card-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
+  margin-left: auto;
   flex-shrink: 0;
-}
-.mn-card-caption {
-  margin-top: 12px;
-  color: var(--mn-muted);
-  font-size: 13.5px;
-  text-align: center;
 }
 .mn-card-body {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  padding: 12px;
+}
+.mn-card-caption {
+  margin-top: 8px;
+  color: var(--mn-muted);
+  font-size: 12.5px;
+  line-height: 1.45;
 }
 
-.mn-play {
-  appearance: none;
-  border: none;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--mn-accent);
-  color: var(--mn-on-accent);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  padding: 0;
-  transition: transform 0.12s ease, background-color 0.15s ease;
-}
-.mn-play svg {
-  width: 15px;
-  height: 15px;
-}
-.mn-play:hover {
-  background: var(--mn-accent-strong);
-}
-.mn-play:active {
-  transform: scale(0.94);
-}
-.mn-play.is-playing {
-  box-shadow: 0 0 0 4px var(--mn-accent-soft);
-}
+/* Small square buttons in the label strip */
+.mn-play,
 .mn-icon-btn {
   appearance: none;
-  border: 1px solid var(--mn-border);
-  background: transparent;
-  color: var(--mn-muted);
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  padding: 0;
   display: grid;
   place-items: center;
-  padding: 0;
+  border: 1px solid var(--mn-border-strong);
+  border-radius: var(--mn-radius-tight);
+  background: transparent;
+  color: var(--mn-muted);
   cursor: pointer;
 }
+.mn-play svg,
 .mn-icon-btn svg {
-  width: 15px;
-  height: 15px;
+  width: 12px;
+  height: 12px;
 }
-.mn-icon-btn.is-on {
-  color: var(--mn-accent);
+.mn-play {
+  border-color: var(--mn-accent-line);
+  color: var(--mn-accent-strong);
+}
+.mn-play svg {
+  width: 11px;
+  height: 11px;
+}
+.mn-play:hover,
+.mn-play.is-playing {
   border-color: var(--mn-accent);
   background: var(--mn-accent-softer);
+}
+.mn-icon-btn:hover {
+  border-color: var(--mn-muted);
+  color: var(--mn-text);
+}
+.mn-icon-btn.is-on {
+  border-color: var(--mn-accent-line);
+  color: var(--mn-accent-strong);
+}
+.mn-play:focus-visible,
+.mn-icon-btn:focus-visible {
+  outline: 1.5px solid var(--mn-accent);
+  outline-offset: 1px;
 }
 
 .mn-error {
@@ -217,8 +218,9 @@
   padding: 6px 0;
 }
 .mn-empty {
-  color: var(--mn-faint);
+  color: var(--mn-muted);
   font-size: 14px;
+  padding: 10px 12px;
 }
 
 /* ---------- Keyboard ---------- */
@@ -238,38 +240,38 @@
 .mn-key rect {
   stroke: var(--mn-key-white-edge);
   stroke-width: 1;
-  transition: fill 0.08s ease;
 }
-.mn-key-white rect {
+.mn-key-white > rect:first-child {
   fill: var(--mn-key-white);
 }
-.mn-key-black rect {
+.mn-key-black > rect:first-child {
   fill: var(--mn-key-black);
   stroke: var(--mn-key-black);
 }
 .mn-key[data-interactive] {
   cursor: pointer;
 }
-.mn-key-white.is-marked rect {
-  fill: color-mix(in srgb, var(--mn-key-mark) 14%, var(--mn-key-white));
+.mn-key .mn-key-dot {
+  fill: var(--mn-key-white);
+  stroke: var(--mn-key-mark);
 }
-.mn-key-black.is-marked rect {
-  fill: color-mix(in srgb, var(--mn-key-mark) 55%, var(--mn-key-black));
-}
-.mn-key-dot {
-  fill: var(--mn-key-mark-soft);
-}
-.mn-key.is-root .mn-key-dot {
+.mn-key.is-filled .mn-key-dot {
   fill: var(--mn-key-mark);
 }
 .mn-key text {
-  font-family: var(--mn-font-label);
-  font-size: 10px;
-  font-weight: 700;
-  fill: var(--mn-on-key-mark-soft);
   pointer-events: none;
 }
-.mn-key.is-root text,
+/* Note names in the round marks use the UI font */
+.mn-key .mn-key-label {
+  font-family: var(--mn-font-ui);
+  font-size: 10px;
+  font-weight: 600;
+  fill: var(--mn-accent-strong);
+}
+.mn-key .mn-key-label.is-long {
+  font-size: 8px;
+}
+.mn-key.is-filled text,
 .mn-key.is-active text,
 .mn-key.is-pressed text {
   fill: var(--mn-on-key-mark);
@@ -277,22 +279,27 @@
 .mn-key .mn-key-label-sm {
   font-size: 8px;
 }
+.mn-key .mn-key-label-sm.is-long {
+  font-size: 6.5px;
+}
 .mn-key .mn-key-c {
-  fill: var(--mn-faint);
+  font-family: var(--mn-font-mono);
+  fill: var(--mn-muted);
   font-weight: 500;
   font-size: 8.5px;
 }
-.mn-key-white.is-active rect,
-.mn-key-white.is-pressed rect {
-  fill: var(--mn-accent-soft);
+.mn-key-white.is-active > rect:first-child,
+.mn-key-white.is-pressed > rect:first-child {
+  fill: color-mix(in srgb, var(--mn-accent) 12%, var(--mn-key-white));
 }
-.mn-key-black.is-active rect,
-.mn-key-black.is-pressed rect {
-  fill: var(--mn-accent);
+.mn-key-black.is-active > rect:first-child,
+.mn-key-black.is-pressed > rect:first-child {
+  fill: color-mix(in srgb, var(--mn-accent) 55%, var(--mn-key-black));
 }
 .mn-key.is-active .mn-key-dot,
 .mn-key.is-pressed .mn-key-dot {
-  fill: var(--mn-accent-strong);
+  fill: var(--mn-accent);
+  stroke: var(--mn-accent);
 }
 
 /* ---------- Chips (scale degrees, diatonic chords) ---------- */
@@ -300,35 +307,28 @@
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
 }
 .mn-chip {
   display: inline-flex;
   flex-direction: column;
   align-items: center;
   min-width: 40px;
-  padding: 5px 8px 4px;
-  border-radius: var(--mn-radius-sm);
-  background: var(--mn-surface);
-  border: 1px solid transparent;
+  padding: 4px 8px 3px;
+  border-radius: var(--mn-radius-tight);
+  border: 1px solid var(--mn-border);
   cursor: pointer;
-  transition: background-color 0.12s ease, border-color 0.12s ease, transform 0.1s ease;
 }
 .mn-chip:hover {
   border-color: var(--mn-border-strong);
 }
 .mn-chip.is-root {
-  background: var(--mn-accent-soft);
+  border-color: var(--mn-accent-line);
 }
 .mn-chip.is-current,
 .mn-chip.is-active {
-  background: var(--mn-accent);
-  color: var(--mn-on-accent);
-}
-.mn-chip.is-current .mn-chip-sub,
-.mn-chip.is-active .mn-chip-sub {
-  color: inherit;
-  opacity: 0.8;
+  border-color: var(--mn-accent);
+  color: var(--mn-accent-strong);
 }
 .mn-chip-main {
   font-family: var(--mn-font-heading);
@@ -336,58 +336,72 @@
   font-size: 15px;
 }
 .mn-chip-sub {
-  font-family: var(--mn-font-label);
-  font-size: 11.5px;
+  font-family: var(--mn-font-mono);
+  font-size: 10.5px;
   color: var(--mn-muted);
-  font-weight: 600;
 }
 .mn-chips-chords .mn-chip {
   min-width: 52px;
 }
 
 /* ---------- Progression ---------- */
+/* Cells share hairline dividers; the outer edges tuck under the frame's border. */
+.mn-progression .mn-card-body {
+  padding: 0;
+}
 .mn-prog {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(92px, 1fr));
+  margin: 0 -1px -1px 0;
 }
 .mn-prog-cell {
-  border-radius: var(--mn-radius-sm);
-  background: var(--mn-surface);
-  padding: 8px 10px 9px;
+  padding: 8px 12px 10px;
   cursor: pointer;
-  border: 1px solid transparent;
-  transition: background-color 0.12s ease, border-color 0.12s ease, color 0.12s ease;
+  box-shadow: inset -1px 0 0 var(--mn-border), inset 0 -1px 0 var(--mn-border);
+}
+/* No browser focus ring after a click; keyboard focus gets the accent outline */
+.mn-prog-cell:focus {
+  outline: none;
+}
+.mn-prog-cell:focus-visible {
+  outline: 1.5px solid var(--mn-accent);
+  outline-offset: -1.5px;
 }
 .mn-prog-cell:hover {
-  border-color: var(--mn-border-strong);
+  background: var(--mn-hover);
 }
+/* Highlight matches the inline note pill */
 .mn-prog-cell.is-current {
-  background: var(--mn-accent);
-  color: var(--mn-on-accent);
+  background: var(--mn-accent-softer);
+  color: var(--mn-accent-strong);
 }
-.mn-prog-cell.is-current .mn-prog-roman,
-.mn-prog-cell.is-invalid {
+.mn-prog-cell.is-invalid,
+.mn-prog-cell.is-invalid .mn-prog-roman {
   color: var(--mn-danger);
   cursor: default;
 }
+.mn-prog-cell.is-invalid:hover {
+  background: none;
+}
 .mn-prog-roman {
-  font-family: var(--mn-font-label);
-  font-weight: 650;
-  font-size: 12px;
-  color: var(--mn-accent);
-  letter-spacing: 0.02em;
+  font-family: var(--mn-font-mono);
+  font-size: 10.5px;
+  color: var(--mn-accent-strong);
+  min-height: 1.3em;
 }
 .mn-prog-symbol {
   font-family: var(--mn-font-heading);
-  font-size: 22px;
-  font-weight: 650;
+  font-size: 20px;
+  font-weight: 600;
   letter-spacing: -0.01em;
   line-height: 1.3;
   white-space: nowrap;
 }
 
 /* ---------- Guitar ---------- */
+.mn-guitar .mn-card-body {
+  padding: 10px 0 8px;
+}
 .mn-fretboard {
   max-width: 100%;
   height: auto;
@@ -396,15 +410,16 @@
 }
 .mn-fret {
   stroke: var(--mn-border-strong);
-  stroke-width: 1.2;
+  stroke-width: 1;
 }
 .mn-nut {
   stroke: var(--mn-text);
-  stroke-width: 4;
+  stroke-width: 3;
   stroke-linecap: round;
 }
 .mn-string {
   stroke: var(--mn-muted);
+  stroke-width: 1;
 }
 .mn-dot,
 .mn-barre {
@@ -413,96 +428,106 @@
 .mn-open {
   fill: none;
   stroke: var(--mn-text);
-  stroke-width: 1.5;
+  stroke-width: 1.2;
 }
 .mn-mute {
   fill: var(--mn-muted);
-  font-size: 15px;
+  font-size: 14px;
   font-family: var(--mn-font-ui);
 }
-.mn-fret-pos {
-  fill: var(--mn-muted);
-  font-size: 11px;
-  font-family: var(--mn-font-label);
-  font-weight: 600;
-}
+.mn-fret-pos,
 .mn-string-label {
   fill: var(--mn-muted);
-  font-size: 11px;
-  font-family: var(--mn-font-label);
-  font-weight: 600;
+  font-size: 10.5px;
+  font-family: var(--mn-font-mono);
 }
 .mn-string-hit:hover .mn-string-label {
-  fill: var(--mn-accent);
+  fill: var(--mn-accent-strong);
 }
 .mn-string-hit.is-active .mn-dot,
 .mn-string-hit.is-active .mn-open {
   fill: var(--mn-accent-strong);
   stroke: var(--mn-accent-strong);
 }
-.mn-guitar .mn-card-header,
-.mn-circle .mn-card-header {
-  margin-bottom: 4px;
-}
-.mn-guitar,
-.mn-circle {
+.mn-guitar {
   max-width: 300px;
   margin-left: auto;
   margin-right: auto;
 }
-.mn-chord-name {
-  font-size: 22px;
-}
 
 /* ---------- Piano roll ---------- */
+.mn-pianoroll .mn-card-body {
+  padding: 14px 12px 12px;
+}
 .mn-roll {
   width: 100%;
   height: auto;
 }
 .mn-roll-row {
-  fill: var(--mn-card);
+  fill: transparent;
 }
 .mn-roll-row.is-black {
-  fill: var(--mn-surface);
+  fill: color-mix(in srgb, var(--mn-text) 3.5%, transparent);
 }
 .mn-roll-key {
   fill: var(--mn-key-white);
-  stroke: var(--mn-border);
+  stroke: var(--mn-key-white-edge);
+  stroke-width: 1;
   cursor: pointer;
 }
 .mn-roll-key.is-black {
   fill: var(--mn-key-black);
+  stroke: var(--mn-key-black);
+}
+/* Playing keys tint like the keyboard widget's */
+.mn-roll-key.is-active,
+.mn-roll-key.is-pressed {
+  fill: color-mix(in srgb, var(--mn-accent) 12%, var(--mn-key-white));
+}
+.mn-roll-key.is-black.is-active,
+.mn-roll-key.is-black.is-pressed {
+  fill: color-mix(in srgb, var(--mn-accent) 55%, var(--mn-key-black));
+}
+.mn-roll-frame {
+  fill: none;
+  stroke: var(--mn-border-strong);
+  stroke-width: 1;
 }
 .mn-roll-label {
-  font-size: 9px;
-  font-family: var(--mn-font-label);
-  font-weight: 600;
+  font-size: 8px;
+  font-family: var(--mn-font-mono);
+  font-weight: 500;
   fill: var(--mn-muted);
   pointer-events: none;
 }
 .mn-roll-step {
   stroke: var(--mn-border);
-  stroke-width: 0.5;
+  stroke-width: 1;
 }
 .mn-roll-beat {
   stroke: var(--mn-border-strong);
-  stroke-width: 0.8;
+  stroke-width: 1;
 }
 .mn-roll-bar {
-  stroke: var(--mn-faint);
+  stroke: var(--mn-muted);
   stroke-width: 1;
 }
 .mn-roll-note {
   fill: var(--mn-accent);
 }
 .mn-roll-playhead {
-  fill: var(--mn-accent-soft);
+  fill: color-mix(in srgb, var(--mn-accent) 10%, transparent);
   pointer-events: none;
 }
 
 /* ---------- Circle of fifths ---------- */
 .mn-circle {
   max-width: 340px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.mn-circle .mn-card-body {
+  padding: 18px 12px 16px;
 }
 .mn-circle svg {
   max-width: 100%;
@@ -512,46 +537,47 @@
   cursor: pointer;
 }
 .mn-circle-seg path {
-  fill: var(--mn-surface);
-  stroke: var(--mn-card);
-  stroke-width: 2;
-  transition: fill 0.12s ease;
-}
-.mn-circle-seg.is-minor path {
-  fill: color-mix(in srgb, var(--mn-surface) 70%, var(--mn-border));
+  fill: transparent;
+  stroke: var(--mn-border-strong);
+  stroke-width: 1;
 }
 .mn-circle-seg:hover path {
-  fill: var(--mn-border-strong);
+  fill: var(--mn-hover);
 }
 .mn-circle-seg.is-in-key path {
-  fill: var(--mn-accent-soft);
+  fill: color-mix(in srgb, var(--mn-accent) 9%, transparent);
 }
 .mn-circle-seg.is-tonic path,
 .mn-circle-seg.is-active path {
   fill: var(--mn-accent);
+  stroke: var(--mn-accent);
 }
 .mn-circle-seg text {
   font-family: var(--mn-font-heading);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   fill: var(--mn-text);
   pointer-events: none;
 }
 .mn-circle-seg.is-minor text {
-  font-size: 11.5px;
+  font-size: 10.5px;
 }
 .mn-circle-seg .mn-circle-roman {
-  font-family: var(--mn-font-label);
-  font-size: 9px;
-  fill: var(--mn-accent);
+  font-family: var(--mn-font-mono);
+  font-weight: 500;
+  font-size: 8.5px;
+  fill: var(--mn-accent-strong);
 }
 .mn-circle-seg.is-tonic text,
 .mn-circle-seg.is-active text,
-.mn-circle-seg.is-tonic .mn-circle-roman {
+.mn-circle-seg.is-tonic .mn-circle-roman,
+.mn-circle-seg.is-active .mn-circle-roman {
   fill: var(--mn-on-accent);
 }
 .mn-circle-hub {
-  fill: var(--mn-card);
+  fill: transparent;
+  stroke: var(--mn-border);
+  stroke-width: 1;
 }
 .mn-circle-center {
   font-family: var(--mn-font-heading);

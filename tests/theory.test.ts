@@ -5,6 +5,8 @@ import {
   displayNote,
   formatFrets,
   getScale,
+  parseStepPattern,
+  stepPatternNotes,
   guitarVoicing,
   intervalBetween,
   parseChord,
@@ -64,6 +66,17 @@ describe('chords', () => {
     expect(p.map((s) => s.symbol)).toEqual(['Dm7', 'G7', 'Cmaj7']);
     const q = parseProgression('Am F C G', 'C');
     expect(q.map((s) => s.roman)).toEqual(['vi', 'IV', 'I', 'V']);
+  });
+});
+
+describe('step patterns', () => {
+  it('parses W/H patterns of any length and walks them up from C', () => {
+    expect(parseStepPattern('WWHWWWH')).toEqual([2, 2, 1, 2, 2, 2, 1]);
+    expect(parseStepPattern(' w-w, h ')).toEqual([2, 2, 1]);
+    expect(parseStepPattern('')).toBeNull();
+    expect(parseStepPattern('WAH')).toBeNull();
+    expect(stepPatternNotes([2, 2, 1, 2, 2, 2, 1])).toEqual(['C4', 'D4', 'E4', 'F4', 'G4', 'A4', 'B4', 'C5']);
+    expect(stepPatternNotes(Array(8).fill(2)).at(-1)).toBe('E5');
   });
 });
 

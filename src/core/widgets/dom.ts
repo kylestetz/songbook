@@ -83,20 +83,30 @@ export function playButton(onPlay: () => void, onStop: () => void, label = 'Play
   return { el: btn, set };
 }
 
-/** Standard card frame for block widgets. */
-export function card(opts: { kind: string; title: Node | string; subtitle?: string; caption?: string }) {
+/**
+ * Standard frame for block widgets: an outlined box with a label strip
+ * (widget kind, an optional title and meta text, then the actions), the
+ * widget body, and the caption set below the box.
+ */
+export function card(opts: { kind: string; label: string; title?: Node | string; meta?: string; caption?: string }) {
   const actions = h('div', { class: 'mn-card-actions' });
   const body = h('div', { class: 'mn-card-body' });
   const el = h(
     'figure',
     { class: `mn-card mn-${opts.kind}` },
     h(
-      'header',
-      { class: 'mn-card-header' },
-      h('div', { class: 'mn-card-titles' }, h('div', { class: 'mn-card-title' }, opts.title), opts.subtitle ? h('div', { class: 'mn-card-subtitle' }, opts.subtitle) : null),
-      actions,
+      'div',
+      { class: 'mn-card-box' },
+      h(
+        'header',
+        { class: 'mn-card-header' },
+        h('span', { class: 'mn-card-label' }, opts.label),
+        opts.title ? h('span', { class: 'mn-card-title' }, opts.title) : null,
+        opts.meta ? h('span', { class: 'mn-card-meta' }, opts.meta) : null,
+        actions,
+      ),
+      body,
     ),
-    body,
     opts.caption ? h('figcaption', { class: 'mn-card-caption' }, opts.caption) : null,
   );
   return { el, body, actions };

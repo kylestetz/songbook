@@ -123,12 +123,20 @@
   margin-top: 1.3em;
   margin-bottom: 1.3em;
 }
-.mn-editor .mn-widget-block.ProseMirror-selectednode .mn-card {
-  box-shadow: 0 0 0 2px var(--mn-accent), var(--mn-shadow);
-  border-color: transparent;
+.mn-editor .mn-widget-block.ProseMirror-selectednode .mn-card-box {
+  border-color: var(--mn-accent);
+  box-shadow: 0 0 0 1px var(--mn-accent);
 }
 .mn-editor .mn-widget-inline.ProseMirror-selectednode .mn-pill {
-  box-shadow: 0 0 0 2px var(--mn-accent);
+  background: color-mix(in srgb, var(--mn-accent) 16%, transparent);
+  box-shadow: 0 0 0 1px var(--mn-accent-line);
+}
+/* Widgets swept up in a text selection take the selection color */
+.mn-editor .mn-widget-inline.is-in-selection .mn-pill {
+  background: var(--mn-selection);
+}
+.mn-editor .mn-widget-block.is-in-selection .mn-card-box {
+  box-shadow: 0 0 0 3px var(--mn-selection);
 }
 .mn-widget-toolbar {
   position: absolute;
@@ -164,7 +172,7 @@
   color: var(--mn-accent);
   border-color: var(--mn-accent);
 }
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
   .mn-widget-toolbar {
     right: 8px;
     top: -14px;
@@ -220,10 +228,7 @@
   color: var(--mn-faint);
   border-radius: var(--mn-radius-xs);
   opacity: 0;
-  transition:
-    opacity 0.15s ease,
-    background 0.15s ease,
-    color 0.15s ease;
+  transition: opacity 0.15s ease;
 }
 .mn-table-add svg {
   width: 14px;

@@ -112,3 +112,23 @@ export function diatonicChords(root: string, mode: string, sevenths = false, oct
 function prettySymbol(sym: string): string {
   return sym.replace(/^([A-G][#b]?)M$/, '$1').replace(/^([A-G][#b]?)M7$/, '$1maj7').replace(/^([A-G][#b]?)Maj7$/, '$1maj7');
 }
+
+/**
+ * Parse a pattern of whole (W) and half (H) steps, e.g. "WWHWWWH", into
+ * semitone sizes. Case-insensitive; spaces, commas and dashes are ignored.
+ * Returns null for an empty pattern or any other character.
+ */
+export function parseStepPattern(input: string): number[] | null {
+  const letters = input.toUpperCase().replace(/[\s,\-–]+/g, '');
+  if (!letters || !/^[WH]+$/.test(letters)) return null;
+  return [...letters].map((c) => (c === 'W' ? 2 : 1));
+}
+
+/** Notes produced by walking a step pattern up from `start` (start note included). */
+export function stepPatternNotes(steps: number[], start = 'C4'): string[] {
+  const base = Note.midi(start) ?? 60;
+  let midi = base;
+  const notes = [Note.fromMidiSharps(midi)];
+  for (const s of steps) notes.push(Note.fromMidiSharps((midi += s)));
+  return notes;
+}
